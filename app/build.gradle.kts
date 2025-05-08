@@ -2,6 +2,9 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.hilt.android) // hilt
+    alias(libs.plugins.kotlin.kapt) // kapt
+    alias(libs.plugins.kotlin.serialization) // serialization
 }
 
 android {
@@ -56,4 +59,55 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+
+    /**
+     * Domain Dependency
+     */
+
+    // coroutines core
+    implementation(libs.kotlinx.coroutines.core)
+
+    /**
+     * Data Dependency
+     */
+
+    // retrofit
+    implementation (libs.retrofit)
+    implementation (libs.retrofit2.converter.gson)
+    implementation(libs.logging.interceptor)
+
+    // coroutines
+    implementation (libs.kotlinx.coroutines.android)
+
+    /**
+     * App Dependency
+     */
+
+    // hilt for DI
+    implementation(libs.hilt.android)
+    implementation (libs.androidx.hilt.navigation.compose)
+    kapt(libs.hilt.compiler)
+    kapt(libs.hilt.android.compiler)
+
+    // viewmodel
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+
+    // coil
+    implementation(libs.coil3.coil.compose)
+    implementation(libs.coil.network.okhttp)
+
+    // navigation
+    implementation(libs.androidx.navigation.compose)
+
+    // serialization
+    implementation(libs.kotlinx.serialization.json)
+
+    // more icons
+    implementation(libs.androidx.material.icons.extended)
+
+    // shimmer
+    implementation(libs.compose.shimmer)
+
+    // accompanist permission
+    implementation (libs.accompanist.permissions)
 }
