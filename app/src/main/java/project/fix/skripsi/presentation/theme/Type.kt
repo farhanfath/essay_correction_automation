@@ -1,4 +1,4 @@
-package project.fix.skripsi.ui.theme
+package project.fix.skripsi.presentation.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
