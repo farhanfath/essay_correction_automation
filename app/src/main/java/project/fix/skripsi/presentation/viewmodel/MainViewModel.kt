@@ -9,10 +9,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
 import project.fix.skripsi.data.remote.n8n.model.N8nResponse
-import project.fix.skripsi.data.repository.EssayRepository
+import project.fix.skripsi.domain.repository.N8nRepository
+import javax.inject.Inject
 
-class MainViewModel : ViewModel() {
-    private val repository = EssayRepository()
+class MainViewModel @Inject constructor(
+    private val repository: N8nRepository
+) : ViewModel() {
 
     var selectedImageUri by mutableStateOf<Uri?>(null)
         private set
