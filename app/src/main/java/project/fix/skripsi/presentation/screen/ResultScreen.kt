@@ -23,6 +23,8 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -46,6 +48,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -60,17 +63,22 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import kotlinx.coroutines.delay
-import project.fix.skripsi.data.remote.n8n.model.N8nResponse
-import project.fix.skripsi.presentation.viewmodel.MainViewModel
+import project.fix.skripsi.domain.model.HasilKoreksi
+import project.fix.skripsi.domain.model.PerSoal
+import project.fix.skripsi.domain.utils.ResultResponse
+import project.fix.skripsi.presentation.utils.HandlerResponseCompose
+import project.fix.skripsi.presentation.viewmodel.EssayViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ResultScreen(
     navController: NavController,
-    viewModel: MainViewModel
+    viewModel: EssayViewModel
 ) {
     val scrollState = rememberScrollState()
     var showContent by remember { mutableStateOf(false) }
+
+    val resultState by viewModel.result.collectAsState()
 
     LaunchedEffect(key1 = Unit) {
         delay(300) // Small delay for animation
@@ -84,7 +92,7 @@ fun ResultScreen(
                 navigationIcon = {
                     IconButton(onClick = {
                         viewModel.resetState()
-                        navController.popBackStack()
+                        navController.navigateUp()
                     }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Default.ArrowBack,
@@ -104,107 +112,40 @@ fun ResultScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            if (viewModel.isLoading) {
-                LoadingEvaluationAnimation(modifier = Modifier.align(Alignment.Center))
-            } else if (viewModel.errorMessage != null) {
-                ErrorView(
-                    errorMessage = viewModel.errorMessage!!,
-                    onRetry = {
-                        navController.popBackStack()
-                    },
-                    modifier = Modifier.align(Alignment.Center)
-                )
-            } else {
-                viewModel.evaluationResults?.let { results ->
-                    if (results.isNotEmpty()) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .verticalScroll(scrollState)
-                                .padding(16.dp)
-                        ) {
-                            AnimatedVisibility(
-                                visible = showContent,
-                                enter = fadeIn(animationSpec = tween(500)) +
-                                        slideInVertically(animationSpec = tween(500)) { it / 2 }
-                            ) {
-                                ResultHeader(results[0])
-                            }
-
-                            Spacer(modifier = Modifier.height(24.dp))
-
-                            // Soal 1
-                            AnimatedVisibility(
-                                visible = showContent,
-                                enter = fadeIn(animationSpec = tween(700)) +
-                                        slideInVertically(animationSpec = tween(700)) { it / 2 }
-                            ) {
-                                ResultItemCard(
-                                    questionNumber = 1,
-                                    penilaian = results[0].penilaian1,
-                                    alasan = results[0].alasan1,
-                                    skor = results[0].skor1
-                                )
-                            }
-
-                            Spacer(modifier = Modifier.height(16.dp))
-
-                            // Soal 2
-                            AnimatedVisibility(
-                                visible = showContent,
-                                enter = fadeIn(animationSpec = tween(900)) +
-                                        slideInVertically(animationSpec = tween(900)) { it / 2 }
-                            ) {
-                                ResultItemCard(
-                                    questionNumber = 2,
-                                    penilaian = results[0].penilaian2,
-                                    alasan = results[0].alasan2,
-                                    skor = results[0].skor2
-                                )
-                            }
-
-                            Spacer(modifier = Modifier.height(32.dp))
-
-                            AnimatedVisibility(
-                                visible = showContent,
-                                enter = fadeIn(animationSpec = tween(1100)) +
-                                        slideInVertically(animationSpec = tween(1100)) { it / 2 }
-                            ) {
-                                Button(
-                                    onClick = {
-                                        viewModel.resetState()
-                                        navController.popBackStack()
-                                    },
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(56.dp),
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = MaterialTheme.colorScheme.primary
-                                    ),
-                                    shape = RoundedCornerShape(12.dp)
-                                ) {
-                                    Text(
-                                        text = "Evaluasi Lagi",
-                                        fontSize = 16.sp,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                }
+            HandlerResponseCompose(
+                response = resultState,
+                onLoading = {
+                    LoadingEvaluationAnimation(modifier = Modifier.align(Alignment.Center))
+                },
+                onError = {
+                    ErrorView(
+                        errorMessage = it.message,
+                        onRetry = {
+                            navController.popBackStack()
+                        },
+                        modifier = Modifier.align(Alignment.Center)
+                    )
+                },
+                onSuccess = { hasil ->
+                    Column {
+                        ResultHeader(
+                            hasil
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        LazyColumn {
+                            items(hasil.hasilKoreksi) { perSoal ->
+                                ResultItemCard(perSoal)
                             }
                         }
-                    } else {
-                        Text(
-                            text = "Tidak ada hasil evaluasi",
-                            modifier = Modifier.align(Alignment.Center)
-                        )
                     }
                 }
-            }
+            )
         }
     }
 }
 
 @Composable
-fun ResultHeader(result: N8nResponse) {
+fun ResultHeader(result: HasilKoreksi) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
@@ -254,10 +195,7 @@ fun ResultHeader(result: N8nResponse) {
 
 @Composable
 fun ResultItemCard(
-    questionNumber: Int,
-    penilaian: String,
-    alasan: String,
-    skor: Int
+    soal: PerSoal
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -271,7 +209,7 @@ fun ResultItemCard(
             modifier = Modifier.padding(16.dp)
         ) {
             Text(
-                text = "Soal $questionNumber:",
+                text = "Soal ${soal.soal}:",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface
@@ -286,13 +224,13 @@ fun ResultItemCard(
                 Icon(
                     imageVector = Icons.Default.Edit,
                     contentDescription = null,
-                    tint = if (penilaian == "Benar") Color(0xFF4CAF50) else Color(0xFFE91E63)
+                    tint = if (soal.jawaban == "Benar") Color(0xFF4CAF50) else Color(0xFFE91E63)
                 )
 
                 Spacer(modifier = Modifier.width(8.dp))
 
                 Text(
-                    text = "✔️ Penilaian: $penilaian",
+                    text = "✔️ Penilaian: ${soal.skor}",
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurface
                 )
@@ -313,7 +251,7 @@ fun ResultItemCard(
                 Spacer(modifier = Modifier.width(8.dp))
 
                 Text(
-                    text = "⭐️ Nilai: $skor/100",
+                    text = "⭐️ Nilai: ${soal.skor}/100",
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurface
                 )
@@ -335,7 +273,7 @@ fun ResultItemCard(
                 Spacer(modifier = Modifier.width(8.dp))
 
                 Text(
-                    text = "📝 Feedback: $alasan",
+                    text = "📝 Feedback: ${soal.alasan}",
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurface
                 )

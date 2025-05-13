@@ -1,5 +1,6 @@
 package project.fix.skripsi.presentation.screen
 
+import android.net.Uri
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -32,7 +33,11 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -45,15 +50,19 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil3.compose.rememberAsyncImagePainter
-import project.fix.skripsi.presentation.helper.rememberMediaHelper
-import project.fix.skripsi.presentation.viewmodel.MainViewModel
+import project.fix.skripsi.domain.utils.ResultResponse
+import project.fix.skripsi.presentation.utils.rememberMediaHelper
+import project.fix.skripsi.presentation.viewmodel.EssayViewModel
 
 @Composable
 fun HomeScreen(
     navController: NavController,
-    viewModel: MainViewModel
+    viewModel: EssayViewModel
 ) {
     val context = LocalContext.current
+
+    val resultState by viewModel.result.collectAsState()
+
     val mediaHelper = rememberMediaHelper(
         context = context,
         setImageUri = { uri ->
@@ -116,7 +125,6 @@ fun HomeScreen(
         ) {
             ElevatedButton(
                 onClick = {
-//                    galleryLauncher.launch("image/*")
                     mediaHelper.openGallery()
                 },
                 modifier = Modifier.weight(1f),
@@ -141,7 +149,6 @@ fun HomeScreen(
 
             ElevatedButton(
                 onClick = {
-//                    cameraLauncher.launch(tempImageUri)
                     mediaHelper.openCamera()
                 },
                 modifier = Modifier.weight(1f),
@@ -168,10 +175,12 @@ fun HomeScreen(
         // Evaluate Button
         Button(
             onClick = {
-                viewModel.evaluateEssay(context)
+                viewModel.selectedImageUri?.let {
+                    viewModel.evaluateEssay(context, it)
+                }
                 navController.navigate("result")
             },
-            enabled = viewModel.selectedImageUri != null && !viewModel.isLoading,
+            enabled = viewModel.selectedImageUri != null && resultState !is ResultResponse.Loading,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp),
@@ -180,7 +189,7 @@ fun HomeScreen(
             ),
             shape = RoundedCornerShape(12.dp)
         ) {
-            if (viewModel.isLoading) {
+            if (resultState is ResultResponse.Loading) {
                 LoadingAnimation()
             } else {
                 Row(
@@ -202,13 +211,16 @@ fun HomeScreen(
         }
 
         // Error message if any
-        viewModel.errorMessage?.let { error ->
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = error,
-                color = MaterialTheme.colorScheme.error,
-                textAlign = TextAlign.Center
-            )
+        when (val state = resultState) {
+            is ResultResponse.Error -> {
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = state.message,
+                    color = MaterialTheme.colorScheme.error,
+                    textAlign = TextAlign.Center
+                )
+            }
+            else -> {}
         }
     }
 }

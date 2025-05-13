@@ -7,17 +7,22 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
+import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import dagger.hilt.android.AndroidEntryPoint
 import project.fix.skripsi.presentation.screen.HomeScreen
 import project.fix.skripsi.presentation.screen.ResultScreen
 import project.fix.skripsi.presentation.theme.SkripsiappTheme
-import project.fix.skripsi.presentation.viewmodel.MainViewModel
+import project.fix.skripsi.presentation.viewmodel.EssayViewModel
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
     private val requestPermissionLauncher = registerForActivityResult(
@@ -37,11 +42,12 @@ class MainActivity : ComponentActivity() {
         requestCameraPermission()
         setContent {
             SkripsiappTheme {
-                Surface {
+                Scaffold { innerPadding ->
                     val navController = rememberNavController()
-                    val mainViewModel: MainViewModel = viewModel()
+                    val mainViewModel: EssayViewModel = viewModel()
 
                     NavHost(
+                        modifier = Modifier.padding(innerPadding),
                         navController = navController,
                         startDestination = "Home"
                     ) {
