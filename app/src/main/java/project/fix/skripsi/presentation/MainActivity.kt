@@ -17,6 +17,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import dagger.hilt.android.AndroidEntryPoint
+import project.fix.skripsi.presentation.screen.EnhancedResultScreen
 import project.fix.skripsi.presentation.screen.HomeScreen
 import project.fix.skripsi.presentation.screen.ResultScreen
 import project.fix.skripsi.presentation.theme.SkripsiappTheme
@@ -58,7 +59,7 @@ class MainActivity : ComponentActivity() {
                             )
                         }
                         composable("Result") {
-                            ResultScreen(
+                            EnhancedResultScreen(
                                 navController = navController,
                                 viewModel = mainViewModel
                             )

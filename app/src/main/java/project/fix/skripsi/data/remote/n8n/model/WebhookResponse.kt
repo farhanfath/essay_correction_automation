@@ -43,7 +43,7 @@ data class HasilKoreksiItem(
 	@field:SerializedName("jawaban")
 	val jawaban: String? = null,
 
-	@field:SerializedName("skor_bobot")
+	@field:SerializedName("skor")
 	val skor: Int? = null,
 
 	@field:SerializedName("alasan")
