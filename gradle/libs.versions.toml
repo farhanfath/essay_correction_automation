@@ -101,6 +101,9 @@ kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", versi
 # kapt
 kotlin-kapt = { id = "org.jetbrains.kotlin.kapt" }
 
+# parcelize
+kotlin-parcelize = { id = "org.jetbrains.kotlin.plugin.parcelize" }
+
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }

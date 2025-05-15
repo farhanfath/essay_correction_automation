@@ -1,4 +1,4 @@
-package project.fix.skripsi.presentation.theme
+package project.fix.skripsi.presentation.ui.theme
 
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme

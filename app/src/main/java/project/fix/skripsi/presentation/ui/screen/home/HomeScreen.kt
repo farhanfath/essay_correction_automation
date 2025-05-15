@@ -1,15 +1,12 @@
-package project.fix.skripsi.presentation.screen
+package project.fix.skripsi.presentation.ui.screen.home
 
-import android.net.Uri
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -35,23 +32,20 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import coil3.compose.rememberAsyncImagePainter
-import project.fix.skripsi.domain.utils.ResultResponse
-import project.fix.skripsi.presentation.utils.rememberMediaHelper
+import project.fix.skripsi.presentation.ui.components.EnhancedPreviewCard
+import project.fix.skripsi.presentation.utils.common.base.state.UiState
+import project.fix.skripsi.presentation.utils.helper.rememberMediaHelper
+import project.fix.skripsi.presentation.utils.helper.uriToBitmap
 import project.fix.skripsi.presentation.viewmodel.EssayViewModel
 
 @Composable
@@ -86,34 +80,10 @@ fun HomeScreen(
         )
 
         // Image Preview
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(300.dp)
-                .clip(RoundedCornerShape(16.dp))
-                .background(MaterialTheme.colorScheme.surfaceVariant)
-                .border(
-                    width = 2.dp,
-                    color = MaterialTheme.colorScheme.outline,
-                    shape = RoundedCornerShape(16.dp)
-                ),
-            contentAlignment = Alignment.Center
-        ) {
-            viewModel.selectedImageUri?.let { uri ->
-                Image(
-                    painter = rememberAsyncImagePainter(uri),
-                    contentDescription = "Selected Image",
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
-                )
-            } ?: run {
-                Text(
-                    text = "Pilih gambar dari galeri atau ambil foto",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(16.dp)
-                )
-            }
+        viewModel.selectedImageUri?.let { uri ->
+            EnhancedPreviewCard(
+                bitmap = uriToBitmap(context, uri)
+            )
         }
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -180,7 +150,7 @@ fun HomeScreen(
                 }
                 navController.navigate("result")
             },
-            enabled = viewModel.selectedImageUri != null && resultState !is ResultResponse.Loading,
+            enabled = viewModel.selectedImageUri != null && resultState !is UiState.Loading,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp),
@@ -189,7 +159,7 @@ fun HomeScreen(
             ),
             shape = RoundedCornerShape(12.dp)
         ) {
-            if (resultState is ResultResponse.Loading) {
+            if (resultState is UiState.Loading) {
                 LoadingAnimation()
             } else {
                 Row(
@@ -212,7 +182,7 @@ fun HomeScreen(
 
         // Error message if any
         when (val state = resultState) {
-            is ResultResponse.Error -> {
+            is UiState.Error -> {
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
                     text = state.message,
@@ -225,6 +195,7 @@ fun HomeScreen(
     }
 }
 
+@Preview
 @Composable
 fun LoadingAnimation() {
     val infiniteTransition = rememberInfiniteTransition(label = "loading_animation")

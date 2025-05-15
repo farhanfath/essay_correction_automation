@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.hilt.android) // hilt
     alias(libs.plugins.kotlin.kapt) // kapt
     alias(libs.plugins.kotlin.serialization) // serialization
+    alias(libs.plugins.kotlin.parcelize) // parcelize
 }
 
 val localProperties = Properties().apply {

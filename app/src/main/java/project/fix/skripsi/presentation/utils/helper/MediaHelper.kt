@@ -1,4 +1,4 @@
-package project.fix.skripsi.presentation.utils
+package project.fix.skripsi.presentation.utils.helper
 
 import android.Manifest
 import android.content.Context
