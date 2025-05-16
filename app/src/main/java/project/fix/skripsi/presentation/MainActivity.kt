@@ -43,7 +43,9 @@ class MainActivity : ComponentActivity() {
 
         requestCameraPermission()
         setContent {
-            SkripsiappTheme {
+            SkripsiappTheme(
+                dynamicColor = false
+            ) {
                 Scaffold { innerPadding ->
                     val navController = rememberNavController()
                     val mainViewModel: EssayViewModel = viewModel()

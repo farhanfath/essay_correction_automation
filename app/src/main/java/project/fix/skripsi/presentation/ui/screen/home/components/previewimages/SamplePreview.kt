@@ -64,67 +64,6 @@ data class ImageItem(
   val description: String = ""
 )
 
-@Composable
-fun CustomCircleButton(
-  icon: ImageVector,
-  onClick: () -> Unit,
-  enabled: Boolean = true
-) {
-  IconButton(
-    onClick = onClick,
-    enabled = enabled,
-    modifier = Modifier
-      .size(40.dp)
-      .border(
-        width = 1.dp,
-        color = if (enabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
-        shape = CircleShape
-      )
-  ) {
-    Icon(
-      imageVector = icon,
-      contentDescription = null,
-      tint = if (enabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant
-    )
-  }
-}
-
-@Composable
-fun ImagePreviewItem(
-  imageItem: ImageItem,
-  modifier: Modifier = Modifier,
-  isSelected: Boolean = false,
-  onClick: () -> Unit = {},
-  additionalContent: @Composable () -> Unit = {}
-) {
-  Box(
-    modifier = modifier
-      .padding(4.dp)
-      .clip(RoundedCornerShape(8.dp))
-      .clickable(onClick = onClick)
-      .border(
-        width = if (isSelected) 2.dp else 0.dp,
-        color = if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent,
-        shape = RoundedCornerShape(8.dp)
-      )
-  ) {
-    Image(
-      painter = painterResource(id = imageItem.resourceId),
-      contentDescription = imageItem.description,
-      modifier = Modifier.matchParentSize(),
-      contentScale = ContentScale.Crop
-    )
-
-    Box(
-      modifier = Modifier
-        .align(Alignment.BottomStart)
-        .padding(8.dp)
-    ) {
-      additionalContent()
-    }
-  }
-}
-
 @Preview
 @Composable
 fun SampleImagePreviewSection() {
