@@ -47,6 +47,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -66,14 +67,15 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import project.fix.skripsi.presentation.state.EssayState
+import project.fix.skripsi.presentation.utils.common.base.state.EssayState
+import project.fix.skripsi.presentation.utils.common.base.state.UiState
 import kotlin.math.max
 import kotlin.math.min
 
 @Composable
 fun EnhancedPreviewCard(
   bitmap: Bitmap,
-  uiState: EssayState = EssayState.Idle
+  uiState: EssayState
 ) {
   // State for animated elements
   val infiniteTransition = rememberInfiniteTransition(label = "analyzeTransition")
@@ -87,13 +89,13 @@ fun EnhancedPreviewCard(
   )
 
   // State for image zoom/pan
-  var scale by remember { mutableStateOf(1f) }
+  var scale by remember { mutableFloatStateOf(1f) }
   var offset by remember { mutableStateOf(Offset.Zero) }
   var showFullscreen by remember { mutableStateOf(false) }
 
   // Animated values
   val cardElevation by animateFloatAsState(
-    targetValue = if (uiState == EssayState.Loading) 12f else 4f,
+    targetValue = if (uiState == UiState.Loading) 12f else 4f,
     label = "cardElevation"
   )
 
@@ -249,7 +251,7 @@ fun EnhancedPreviewCard(
           )
 
           // Scanning animation when analyzing
-          if (uiState == EssayState.Loading) {
+          if (uiState == UiState.Loading) {
             Box(
               modifier = Modifier
                 .matchParentSize()

@@ -16,8 +16,11 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import dagger.hilt.android.AndroidEntryPoint
+import project.fix.skripsi.presentation.ui.screen.home.EnhancedHomeScreen
 import project.fix.skripsi.presentation.ui.screen.result.EnhancedResultScreen
 import project.fix.skripsi.presentation.ui.screen.home.HomeScreen
+import project.fix.skripsi.presentation.ui.screen.home.HomeScreenV2
+import project.fix.skripsi.presentation.ui.screen.home.components.UpgradeHomeScreen
 import project.fix.skripsi.presentation.ui.theme.SkripsiappTheme
 import project.fix.skripsi.presentation.viewmodel.EssayViewModel
 
@@ -51,10 +54,19 @@ class MainActivity : ComponentActivity() {
                         startDestination = "Home"
                     ) {
                         composable("Home") {
-                            HomeScreen(
-                                navController = navController,
-                                viewModel = mainViewModel
-                            )
+                            UpgradeHomeScreen()
+//                            EnhancedHomeScreen(
+//                                navController = navController,
+//                                viewModel = mainViewModel
+//                            )
+//                            HomeScreenV2(
+//                                navController = navController,
+//                                viewModel = mainViewModel
+//                            )
+//                            HomeScreen(
+//                                navController = navController,
+//                                viewModel = mainViewModel
+//                            )
                         }
                         composable("Result") {
                             EnhancedResultScreen(

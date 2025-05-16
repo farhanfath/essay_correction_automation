@@ -1,11 +1,14 @@
 package project.fix.skripsi.presentation.ui.screen.home
 
+import android.graphics.Bitmap
+import android.net.Uri
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,6 +21,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CameraAlt
@@ -32,8 +37,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -41,9 +52,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
 import project.fix.skripsi.presentation.ui.components.EnhancedPreviewCard
+import project.fix.skripsi.presentation.ui.components.LoadingAnimation
 import project.fix.skripsi.presentation.utils.common.base.state.UiState
+import project.fix.skripsi.presentation.utils.helper.mergeImagesVertically
 import project.fix.skripsi.presentation.utils.helper.rememberMediaHelper
 import project.fix.skripsi.presentation.utils.helper.uriToBitmap
 import project.fix.skripsi.presentation.viewmodel.EssayViewModel
@@ -54,15 +68,27 @@ fun HomeScreen(
     viewModel: EssayViewModel
 ) {
     val context = LocalContext.current
+    val imageUris = remember { mutableStateListOf<Uri>() }
 
     val resultState by viewModel.result.collectAsState()
 
     val mediaHelper = rememberMediaHelper(
         context = context,
-        setImageUri = { uri ->
+        addImageUri = { uri ->
+            imageUris.add(uri)
             viewModel.setSelectedImage(uri)
+        },
+        addImageUris = { uris ->
+            imageUris.addAll(uris)
+            viewModel.addSelectedImages(uris)
         }
     )
+
+    /**
+     * todo: deleted soon
+     */
+    var showSampleMergeDialog by remember { mutableStateOf(false) }
+    var mergedBitmap by remember { mutableStateOf<Bitmap?>(null) }
 
     Column(
         modifier = Modifier
@@ -80,10 +106,26 @@ fun HomeScreen(
         )
 
         // Image Preview
-        viewModel.selectedImageUri?.let { uri ->
-            EnhancedPreviewCard(
-                bitmap = uriToBitmap(context, uri)
-            )
+//        viewModel.selectedImageUri?.let { uri ->
+//            EnhancedPreviewCard(
+//                bitmap = uriToBitmap(context, uri),
+//                uiState = resultState
+//            )
+//        }
+
+        LazyRow(
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            items(imageUris) { uri ->
+                Image(
+                    bitmap = uriToBitmap(context, uri).asImageBitmap(),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(120.dp)
+                        .padding(8.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                )
+            }
         }
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -140,17 +182,61 @@ fun HomeScreen(
             }
         }
 
+        /**
+         * todo: delete soon
+         */
+        Row(
+            modifier = Modifier
+                .padding(vertical = 1.dp)
+                .fillMaxWidth()
+        ) {
+            Button(
+                onClick = {
+                    val bitmaps = imageUris.map { uri ->
+                        uriToBitmap(context, uri)
+                    }
+                    mergedBitmap = mergeImagesVertically(bitmaps)
+                },
+                enabled = resultState !is UiState.Loading,
+                modifier = Modifier
+                    .weight(1f)
+                    .height(56.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary
+                ),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Text(
+                    text = "gabungkan gambar"
+                )
+            }
+            Button(
+                onClick = {
+                    showSampleMergeDialog = true
+                },
+                enabled = resultState !is UiState.Loading,
+                modifier = Modifier
+                    .weight(1f)
+                    .height(56.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary
+                ),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Text(
+                    text = "tampilkan preview gabungan gambar"
+                )
+            }
+        }
         Spacer(modifier = Modifier.height(32.dp))
 
         // Evaluate Button
         Button(
             onClick = {
-                viewModel.selectedImageUri?.let {
-                    viewModel.evaluateEssay(context, it)
-                }
+                viewModel.evaluateEssay(context)
                 navController.navigate("result")
             },
-            enabled = viewModel.selectedImageUri != null && resultState !is UiState.Loading,
+            enabled = resultState !is UiState.Loading,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp),
@@ -192,44 +278,28 @@ fun HomeScreen(
             }
             else -> {}
         }
+
+        if (showSampleMergeDialog) {
+            Dialog(
+                onDismissRequest = {
+                    showSampleMergeDialog = false
+                }
+            ) {
+                if (mergedBitmap != null) {
+                    mergedBitmap?.let {
+                        PreviewMergedImage(mergedBitmap = it)
+                    }
+                }
+            }
+        }
     }
 }
 
-@Preview
 @Composable
-fun LoadingAnimation() {
-    val infiniteTransition = rememberInfiniteTransition(label = "loading_animation")
-    val scale by infiniteTransition.animateFloat(
-        initialValue = 0.6f,
-        targetValue = 1.0f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(600, easing = LinearEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "scale_animation"
-    )
-
-    val rotation by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 360f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(1500, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "rotation_animation"
-    )
-
-    Box(
-        modifier = Modifier
-            .graphicsLayer {
-                rotationZ = rotation
-                scaleX = scale
-                scaleY = scale
-            }
-            .size(24.dp)
-            .background(
-                color = MaterialTheme.colorScheme.primaryContainer,
-                shape = RoundedCornerShape(50)
-            )
+fun PreviewMergedImage(mergedBitmap: Bitmap) {
+    Image(
+        bitmap = mergedBitmap.asImageBitmap(),
+        contentDescription = "Merged Image",
+        modifier = Modifier.fillMaxWidth()
     )
 }

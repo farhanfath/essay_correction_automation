@@ -22,8 +22,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import project.fix.skripsi.domain.model.PerSoal
-import project.fix.skripsi.presentation.ui.screen.result.CategoryBar
-import project.fix.skripsi.presentation.ui.screen.result.StatBox
 
 @Composable
 fun StatisticsSummaryCard(
