@@ -1,6 +1,6 @@
 package project.fix.skripsi.presentation.ui.screen.home.components.previewimages
 
-import androidx.compose.foundation.Image
+import android.net.Uri
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -13,12 +13,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import coil3.compose.AsyncImage
 
 @Composable
 fun ImagePreviewItem(
-  imageItem: ImageItem,
+  uri: Uri,
   modifier: Modifier = Modifier,
   isSelected: Boolean = false,
   onClick: () -> Unit = {},
@@ -35,9 +35,9 @@ fun ImagePreviewItem(
         shape = RoundedCornerShape(8.dp)
       )
   ) {
-    Image(
-      painter = painterResource(id = imageItem.resourceId),
-      contentDescription = imageItem.description,
+    AsyncImage(
+      model = uri,
+      contentDescription = "",
       modifier = Modifier.matchParentSize(),
       contentScale = ContentScale.Crop
     )

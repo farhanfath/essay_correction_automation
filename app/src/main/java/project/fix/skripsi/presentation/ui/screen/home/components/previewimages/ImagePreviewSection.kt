@@ -1,20 +1,19 @@
 package project.fix.skripsi.presentation.ui.screen.home.components.previewimages
 
+import android.content.Context
+import android.net.Uri
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.Image
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -22,7 +21,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -48,37 +47,24 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import coil3.compose.AsyncImage
 import kotlinx.coroutines.launch
-import project.fix.skripsi.R
 
-@Preview
 @Composable
-fun ImagePreviewSection() {
-
-  /**
-   * todo: change with list uri image
-   */
-  val sampleImages = List(10) { index ->
-    ImageItem(
-      id = index,
-      // Using same resource for all items in this example
-      resourceId = R.drawable.ic_launcher_background
-    )
-  }
-
+fun ImagePreviewSection(
+  uris: List<Uri>,
+  context: Context
+) {
   var showPreviewRow by remember { mutableStateOf(false) }
   val lazyRowState = rememberLazyListState()
   val coroutineScope = rememberCoroutineScope()
 
   val pagerState = rememberPagerState(
     initialPage = 0,
-    pageCount = { sampleImages.size }
+    pageCount = { uris.size }
   )
 
   LaunchedEffect(pagerState) {
@@ -90,8 +76,7 @@ fun ImagePreviewSection() {
   }
 
   Column(
-    modifier = Modifier
-      .fillMaxWidth(),
+    modifier = Modifier.fillMaxWidth(),
     horizontalAlignment = Alignment.CenterHorizontally
   ) {
     HorizontalPager(
@@ -103,9 +88,9 @@ fun ImagePreviewSection() {
       Box(
         modifier = Modifier.fillMaxWidth()
       ) {
-        Image(
-          painter = painterResource(sampleImages[page].resourceId),
-          contentDescription = sampleImages[page].description,
+        AsyncImage(
+          model = uris[page],
+          contentDescription = "",
           modifier = Modifier.fillMaxSize(),
           contentScale = ContentScale.Crop
         )
@@ -140,7 +125,7 @@ fun ImagePreviewSection() {
         },
         label = {
           Text(
-            text = "Halaman ${pagerState.currentPage + 1} dari ${sampleImages.size}",
+            text = "Halaman ${pagerState.currentPage + 1} dari ${uris.size}",
             style = MaterialTheme.typography.labelSmall.copy(
               color = MaterialTheme.colorScheme.onSurface
             )
@@ -153,22 +138,29 @@ fun ImagePreviewSection() {
             contentDescription = "",
             tint = MaterialTheme.colorScheme.onSurface
           )
-        }
+        },
+        border = BorderStroke(
+          width = 1.dp,
+          color = if (showPreviewRow) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant
+        )
       )
 
       CustomCircleButton(
         icon = Icons.AutoMirrored.Filled.KeyboardArrowRight,
         onClick = {
-          if (pagerState.currentPage < sampleImages.size - 1) {
+          if (pagerState.currentPage < uris.size - 1) {
             coroutineScope.launch {
               pagerState.animateScrollToPage(pagerState.currentPage + 1)
             }
           }
         },
-        enabled = pagerState.currentPage < sampleImages.size - 1
+        enabled = pagerState.currentPage < uris.size - 1
       )
     }
 
+    /**
+     * image item on row
+     */
     AnimatedVisibility(
       visible = showPreviewRow,
       enter = fadeIn() + expandVertically(),
@@ -180,16 +172,16 @@ fun ImagePreviewSection() {
           .padding(horizontal = 8.dp),
         state = lazyRowState
       ) {
-        items(sampleImages) { imageItem ->
+        itemsIndexed(uris) { index, uri ->
           ImagePreviewItem(
-            imageItem = imageItem,
+            uri = uri,
             modifier = Modifier
               .width(100.dp)
               .height(150.dp),
-            isSelected = pagerState.currentPage == imageItem.id,
+            isSelected = pagerState.currentPage == index,
             onClick = {
               coroutineScope.launch {
-                pagerState.animateScrollToPage(imageItem.id)
+                pagerState.animateScrollToPage(index)
               }
             },
             additionalContent = {
@@ -202,7 +194,7 @@ fun ImagePreviewSection() {
                   .padding(vertical = 4.dp, horizontal = 10.dp)
               ) {
                 Text(
-                  text = "${imageItem.id + 1}",
+                  text = "${index + 1}",
                   style = MaterialTheme.typography.labelSmall.copy(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                   )
@@ -226,10 +218,6 @@ fun CustomCircleButton(
     onClick = onClick,
     enabled = enabled,
     modifier = Modifier
-//      .background(
-//        color = backgroundColor,
-//        shape = CircleShape
-//      )
       .border(
         width = 1.dp,
         color = if (enabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
