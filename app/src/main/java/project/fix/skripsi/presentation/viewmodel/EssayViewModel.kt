@@ -25,6 +25,7 @@ import project.fix.skripsi.presentation.utils.helper.uriToBitmap
 import project.fix.skripsi.presentation.utils.helper.uriToTempFile
 import javax.inject.Inject
 
+
 @HiltViewModel
 class EssayViewModel @Inject constructor(
   private val evaluateEssayUseCase: EvaluateEssayUseCase
@@ -32,6 +33,36 @@ class EssayViewModel @Inject constructor(
 
   private val _selectedImageUris = MutableStateFlow<List<Uri>>(emptyList())
   val selectedImageUris = _selectedImageUris.asStateFlow()
+
+  private val _result = MutableStateFlow<EssayState>(UiState.Idle)
+  val result: StateFlow<EssayState> = _result.asStateFlow()
+
+  // Show/hide preview row state
+  private val _showPreviewRow = MutableStateFlow(true)
+  val showPreviewRow = _showPreviewRow.asStateFlow()
+
+  // Show/hide media options state
+  private val _showMediaOptions = MutableStateFlow(false)
+  val showMediaOptions = _showMediaOptions.asStateFlow()
+
+  fun evaluateEssay(context: Context) {
+    viewModelScope.launch {
+      _result.value = UiState.Loading
+
+      val imagesList = _selectedImageUris.value
+      if (imagesList.isEmpty()) {
+        _result.value = UiState.Error("Tidak ada gambar valid")
+        return@launch
+      }
+
+      val bitmaps = imagesList.map { uri -> uriToBitmap(context, uri) }
+      val mergedBitmap = mergeImagesVertically(bitmaps)
+      val tempFile = bitmapToTempFile(context, mergedBitmap)
+
+      val response = evaluateEssayUseCase(tempFile)
+      _result.value = response.toUiState()
+    }
+  }
 
   fun addSingleImage(uri: Uri) {
     val currentList = _selectedImageUris.value.toMutableList()
@@ -63,7 +94,7 @@ class EssayViewModel @Inject constructor(
     }
   }
 
-  // Reorder images
+  // Reorder images - Metode dengan fromIndex dan toIndex
   fun reorderImages(fromIndex: Int, toIndex: Int) {
     if (fromIndex in _selectedImageUris.value.indices &&
       toIndex in _selectedImageUris.value.indices &&
@@ -76,31 +107,24 @@ class EssayViewModel @Inject constructor(
     }
   }
 
+  // Metode baru untuk memperbarui seluruh urutan gambar
+  fun updateImagesOrder(newOrderedUris: List<Uri>) {
+    _selectedImageUris.value = newOrderedUris
+  }
+
+  // Toggle preview row visibility
+  fun togglePreviewRow(show: Boolean) {
+    _showPreviewRow.value = show
+  }
+
+  // Toggle media options visibility
+  fun toggleMediaOptions(show: Boolean) {
+    _showMediaOptions.value = show
+  }
+
   // Clear all images
   fun clearSelectedImages() {
     _selectedImageUris.value = emptyList()
-  }
-
-  private val _result = MutableStateFlow<EssayState>(UiState.Idle)
-  val result: StateFlow<EssayState> = _result.asStateFlow()
-
-  fun evaluateEssay(context: Context) {
-    viewModelScope.launch {
-      _result.value = UiState.Loading
-
-      val imagesList = _selectedImageUris.value
-      if (imagesList.isEmpty()) {
-        _result.value = UiState.Error("Tidak ada gambar valid")
-        return@launch
-      }
-
-      val bitmaps = imagesList.map { uri -> uriToBitmap(context, uri) }
-      val mergedBitmap = mergeImagesVertically(bitmaps)
-      val tempFile = bitmapToTempFile(context, mergedBitmap)
-
-      val response = evaluateEssayUseCase(tempFile)
-      _result.value = response.toUiState()
-    }
   }
 
   fun resetState() {
@@ -108,51 +132,3 @@ class EssayViewModel @Inject constructor(
     _result.value = UiState.Idle
   }
 }
-
-//@HiltViewModel
-//class EssayViewModel @Inject constructor(
-//  private val evaluateEssayUseCase: EvaluateEssayUseCase
-//) : ViewModel() {
-//
-//  var selectedImageUris = mutableStateListOf<Uri>()
-//    private set
-//
-//  fun setSelectedImage(uri: Uri) {
-//    selectedImageUris.clear()
-//    selectedImageUris.add(uri)
-//  }
-//
-//  fun addSelectedImages(uris: List<Uri>) {
-//    selectedImageUris.addAll(uris)
-//  }
-//
-//  private fun clearSelectedImages() {
-//    selectedImageUris.clear()
-//  }
-//
-//  private val _result = MutableStateFlow<EssayState>(UiState.Idle)
-//  val result: StateFlow<EssayState> = _result.asStateFlow()
-//
-//  fun evaluateEssay(context: Context) {
-//    viewModelScope.launch {
-//      _result.value = UiState.Loading
-//
-//      val bitmaps = selectedImageUris.map { uri -> uriToBitmap(context, uri) }
-//      if (bitmaps.isEmpty()) {
-//        _result.value = UiState.Error("Tidak ada gambar valid")
-//        return@launch
-//      }
-//
-//      val mergedBitmap = mergeImagesVertically(bitmaps)
-//      val tempFile = bitmapToTempFile(context, mergedBitmap)
-//
-//      val response = evaluateEssayUseCase(tempFile)
-//      _result.value = response.toUiState()
-//    }
-//  }
-//
-//  fun resetState() {
-//    clearSelectedImages()
-//    _result.value = UiState.Idle
-//  }
-//}
