@@ -2,7 +2,7 @@ package project.fix.skripsi.domain.model
 
 data class HasilKoreksi (
     val nama: String,
-    val skorAkhir: Int,
+    val skorAkhir: Double,
     val hasilKoreksi: List<PerSoal>
 )
 

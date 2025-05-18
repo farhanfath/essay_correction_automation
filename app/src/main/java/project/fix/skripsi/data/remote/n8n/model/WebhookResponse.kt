@@ -10,7 +10,7 @@ data class WebhookResponse(
 	val nama: String? = null,
 
 	@field:SerializedName("total_skor")
-	val skorAkhir: Int? = null,
+	val skorAkhir: Double? = null,
 
 	@field:SerializedName("hasil_koreksi")
 	val hasilKoreksi: List<HasilKoreksiItem?>? = null
@@ -19,7 +19,7 @@ data class WebhookResponse(
 		fun transform(response: WebhookResponse) : HasilKoreksi {
 			return HasilKoreksi(
 				nama = response.nama ?: "",
-				skorAkhir = response.skorAkhir ?: 0,
+				skorAkhir = response.skorAkhir ?: 0.0,
 				hasilKoreksi = response.hasilKoreksi
 					?.filterNotNull()
 					?.map {

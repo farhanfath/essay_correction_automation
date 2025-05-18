@@ -2,19 +2,16 @@ package project.fix.skripsi.presentation.viewmodel
 
 import android.content.Context
 import android.net.Uri
-import android.util.Log
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import project.fix.skripsi.domain.model.AnswerKeyItem
+import project.fix.skripsi.domain.model.CorrectionType
+import project.fix.skripsi.domain.model.EssayCategory
 import project.fix.skripsi.domain.usecase.EvaluateEssayUseCase
 import project.fix.skripsi.presentation.utils.common.base.state.EssayState
 import project.fix.skripsi.presentation.utils.common.base.state.UiState
@@ -22,7 +19,6 @@ import project.fix.skripsi.presentation.utils.common.base.state.toUiState
 import project.fix.skripsi.presentation.utils.helper.bitmapToTempFile
 import project.fix.skripsi.presentation.utils.helper.mergeImagesVertically
 import project.fix.skripsi.presentation.utils.helper.uriToBitmap
-import project.fix.skripsi.presentation.utils.helper.uriToTempFile
 import javax.inject.Inject
 
 
@@ -37,13 +33,14 @@ class EssayViewModel @Inject constructor(
   private val _result = MutableStateFlow<EssayState>(UiState.Idle)
   val result: StateFlow<EssayState> = _result.asStateFlow()
 
-  // Show/hide preview row state
-  private val _showPreviewRow = MutableStateFlow(true)
-  val showPreviewRow = _showPreviewRow.asStateFlow()
+  private val _selectedCategory = MutableStateFlow<EssayCategory?>(null)
+  val selectedCategory = _selectedCategory.asStateFlow()
 
-  // Show/hide media options state
-  private val _showMediaOptions = MutableStateFlow(false)
-  val showMediaOptions = _showMediaOptions.asStateFlow()
+  private val _answerKeyItems = MutableStateFlow<List<AnswerKeyItem>>(emptyList())
+  val answerKeyItems = _answerKeyItems.asStateFlow()
+
+  private val _correctionType = MutableStateFlow(CorrectionType.AI)
+  val correctionType = _correctionType.asStateFlow()
 
   fun evaluateEssay(context: Context) {
     viewModelScope.launch {
@@ -55,11 +52,20 @@ class EssayViewModel @Inject constructor(
         return@launch
       }
 
+      // image for send to evaluation
       val bitmaps = imagesList.map { uri -> uriToBitmap(context, uri) }
       val mergedBitmap = mergeImagesVertically(bitmaps)
       val tempFile = bitmapToTempFile(context, mergedBitmap)
 
-      val response = evaluateEssayUseCase(tempFile)
+      // category
+      val category = _selectedCategory.value
+      val quizCategoryType = category?.id ?: ""
+
+      // answer_key
+      val answerKeysList = answerKeyItems.value.map { it.answer }
+      val correctionType = correctionType.value.name
+
+      val response = evaluateEssayUseCase(tempFile, quizCategoryType, correctionType, answerKeysList)
       _result.value = response.toUiState()
     }
   }
@@ -68,14 +74,6 @@ class EssayViewModel @Inject constructor(
     val currentList = _selectedImageUris.value.toMutableList()
     currentList.add(uri)
     _selectedImageUris.value = currentList
-  }
-
-  /**
-   * todo: delete soon
-   */
-  // Set a single image (replacing all existing ones)
-  fun setSelectedImage(uri: Uri) {
-    _selectedImageUris.value = listOf(uri)
   }
 
   // Add multiple images
@@ -112,16 +110,6 @@ class EssayViewModel @Inject constructor(
     _selectedImageUris.value = newOrderedUris
   }
 
-  // Toggle preview row visibility
-  fun togglePreviewRow(show: Boolean) {
-    _showPreviewRow.value = show
-  }
-
-  // Toggle media options visibility
-  fun toggleMediaOptions(show: Boolean) {
-    _showMediaOptions.value = show
-  }
-
   // Clear all images
   fun clearSelectedImages() {
     _selectedImageUris.value = emptyList()
@@ -130,5 +118,19 @@ class EssayViewModel @Inject constructor(
   fun resetState() {
     clearSelectedImages()
     _result.value = UiState.Idle
+  }
+
+  // category
+  fun setSelectedCategory(category: EssayCategory) {
+    _selectedCategory.value = category
+  }
+
+  // answer key handler
+  fun updateAnswerKeyItems(items: List<AnswerKeyItem>) {
+    _answerKeyItems.value = items
+  }
+
+  fun setCorrectionType(type: CorrectionType) {
+    _correctionType.value = type
   }
 }

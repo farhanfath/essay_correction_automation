@@ -4,5 +4,10 @@ import project.fix.skripsi.data.remote.n8n.model.WebhookResponse
 import java.io.File
 
 interface N8nDataSource {
-    suspend fun evaluateEssay(imageFile: File): Result<WebhookResponse>
+    suspend fun evaluateEssay(
+        imageFile: File,
+        quizType: String,
+        evaluationCategory: String,
+        answerKey: List<String>
+    ): Result<WebhookResponse>
 }

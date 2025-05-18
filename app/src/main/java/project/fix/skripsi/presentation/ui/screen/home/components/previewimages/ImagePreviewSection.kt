@@ -1,6 +1,5 @@
 package project.fix.skripsi.presentation.ui.screen.home.components.previewimages
 
-import android.content.Context
 import android.net.Uri
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Spring

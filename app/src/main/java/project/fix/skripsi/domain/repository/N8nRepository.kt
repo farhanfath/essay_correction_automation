@@ -5,5 +5,10 @@ import project.fix.skripsi.domain.utils.ResultResponse
 import java.io.File
 
 interface N8nRepository {
-    suspend fun evaluateEssay(imageFile: File): ResultResponse<HasilKoreksi>
+    suspend fun evaluateEssay(
+        imageFile: File,
+        quizType: String,
+        evaluationCategory: String,
+        answerKey: List<String>
+    ): ResultResponse<HasilKoreksi>
 }

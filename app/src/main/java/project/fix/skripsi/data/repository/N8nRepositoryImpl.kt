@@ -11,10 +11,14 @@ import javax.inject.Inject
 class N8nRepositoryImpl @Inject constructor(
     private val n8nDataSource: N8nDataSource
 ) : N8nRepository {
-
-    override suspend fun evaluateEssay(imageFile: File): ResultResponse<HasilKoreksi> {
+    override suspend fun evaluateEssay(
+        imageFile: File,
+        quizType: String,
+        evaluationCategory: String,
+        answerKey: List<String>
+    ): ResultResponse<HasilKoreksi> {
         return try {
-            val result = n8nDataSource.evaluateEssay(imageFile)
+            val result = n8nDataSource.evaluateEssay(imageFile, quizType, evaluationCategory, answerKey)
             result.fold(
                 onSuccess = {
                     val response = WebhookResponse.transform(it)

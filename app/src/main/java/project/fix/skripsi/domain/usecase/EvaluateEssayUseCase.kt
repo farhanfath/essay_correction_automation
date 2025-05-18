@@ -9,7 +9,12 @@ import javax.inject.Inject
 class EvaluateEssayUseCase @Inject constructor(
   private val n8nRepository: N8nRepository
 ) {
-  suspend operator fun invoke(imageFile: File): ResultResponse<HasilKoreksi> {
-    return n8nRepository.evaluateEssay(imageFile)
+  suspend operator fun invoke(
+    imageFile: File,
+    quizType: String,
+    evaluationCategory: String,
+    answerKey: List<String>
+  ): ResultResponse<HasilKoreksi> {
+    return n8nRepository.evaluateEssay(imageFile, quizType, evaluationCategory, answerKey)
   }
 }
