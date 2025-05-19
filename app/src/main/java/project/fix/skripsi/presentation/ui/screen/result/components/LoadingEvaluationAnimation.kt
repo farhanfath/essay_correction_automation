@@ -29,7 +29,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -234,8 +233,8 @@ fun LoadingEvaluationAnimation(modifier: Modifier = Modifier) {
     AnimatedContent(
       targetState = textChangeAnimation.toInt(),
       transitionSpec = {
-        fadeIn(animationSpec = tween(300)) togetherWith
-                fadeOut(animationSpec = tween(300))
+        fadeIn(animationSpec = tween(1000)) togetherWith
+                fadeOut(animationSpec = tween(1000))
       },
       label = "text_animation"
     ) { state ->
@@ -252,14 +251,5 @@ fun LoadingEvaluationAnimation(modifier: Modifier = Modifier) {
         textAlign = TextAlign.Center
       )
     }
-
-    // Progress percentage
-    val progressPercentage = (textChangeAnimation / 5 * 100).toInt()
-    Text(
-      text = "$progressPercentage%",
-      style = MaterialTheme.typography.labelMedium,
-      color = MaterialTheme.colorScheme.primary,
-      modifier = Modifier.padding(top = 8.dp)
-    )
   }
 }
