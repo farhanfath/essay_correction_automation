@@ -74,10 +74,11 @@ fun HomeScreen(
 ) {
     val context = LocalContext.current
 
-    val imageUris by viewModel.selectedImageUris.collectAsState()
-    val selectedCategory by viewModel.selectedCategory.collectAsState()
-    val answerKeyItems by viewModel.answerKeyItems.collectAsState()
-    val correctionType by viewModel.correctionType.collectAsState()
+//    val imageUris by viewModel.selectedImageUris.collectAsState()
+//    val selectedCategory by viewModel.selectedCategory.collectAsState()
+//    val answerKeyItems by viewModel.answerKeyItems.collectAsState()
+//    val correctionType by viewModel.correctionType.collectAsState()
+    val essayData by viewModel.essayData.collectAsState()
 
     val mediaHelper = rememberMediaHelper(
         context = context,
@@ -112,13 +113,13 @@ fun HomeScreen(
                 viewModel.setSelectedCategory(category)
                 showCategoryDialog = false
             },
-            selectedCategory = selectedCategory
+            selectedCategory = essayData.selectedCategory
         )
     }
 
     if (showAnswerKeyDialog) {
         AnswerKeyDialog(
-            answerKeyItems = answerKeyItems,
+            answerKeyItems = essayData.answerKeyItems,
             onDismiss = { showAnswerKeyDialog = false },
             onAnswerKeySaved = { newAnswerKeyItems ->
                 viewModel.updateAnswerKeyItems(newAnswerKeyItems)
@@ -129,7 +130,7 @@ fun HomeScreen(
 
     if (showCorrectionTypeDialog) {
         CorrectionTypeDialog(
-            currentType = correctionType,
+            currentType = essayData.correctionType,
             onDismiss = { showCorrectionTypeDialog = false },
             onTypeSelected = { type ->
                 viewModel.setCorrectionType(type)
@@ -246,7 +247,7 @@ fun HomeScreen(
                         modifier = Modifier.size(42.dp)
                     ) {
                         Icon(
-                            imageVector = if (correctionType == CorrectionType.AI)
+                            imageVector = if (essayData.correctionType == CorrectionType.AI)
                                 Icons.Rounded.Psychology else Icons.Rounded.Key,
                             contentDescription = "Tipe Koreksi",
                             modifier = Modifier.size(20.dp)
@@ -259,8 +260,8 @@ fun HomeScreen(
                             viewModel.evaluateEssay(context)
                             onNavigateToResult()
                         },
-                        enabled = imageUris.isNotEmpty() && selectedCategory != null &&
-                                (correctionType == CorrectionType.AI || answerKeyItems.isNotEmpty()),
+                        enabled = essayData.selectedImageUris.isNotEmpty() && essayData.selectedCategory != null &&
+                                (essayData.correctionType == CorrectionType.AI || essayData.answerKeyItems.isNotEmpty()),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.primary,
                             disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
@@ -301,9 +302,9 @@ fun HomeScreen(
                 )
         ) {
             Column {
-                if (imageUris.isNotEmpty()) {
+                if (essayData.selectedImageUris.isNotEmpty()) {
                     AdaptiveImagePreviewSection(
-                        uris = imageUris,
+                        uris = essayData.selectedImageUris,
                         showPreviewRow = showPreviewRow,
                         showMediaOptions = showMediaOptions,
                         onTogglePreviewRow = {
@@ -357,7 +358,7 @@ fun HomeScreen(
         ) {
             // pill button
             AnimatedVisibility(
-                visible = imageUris.isNotEmpty() && !showPreviewRow && !showMediaOptions,
+                visible = essayData.selectedImageUris.isNotEmpty() && !showPreviewRow && !showMediaOptions,
                 enter = fadeIn() + slideInVertically(),
                 exit = fadeOut() + slideOutVertically()
             ) {
@@ -402,10 +403,10 @@ fun HomeScreen(
                 modifier = Modifier.align(Alignment.TopCenter)
             ) {
                 EssayInfoSummary(
-                    imageUris = imageUris,
-                    category = selectedCategory,
-                    answerKeyItems = answerKeyItems,
-                    correctionType = correctionType,
+                    imageUris = essayData.selectedImageUris,
+                    category = essayData.selectedCategory,
+                    answerKeyItems = essayData.answerKeyItems,
+                    correctionType = essayData.correctionType,
                     onCategoryClick = { showCategoryDialog = true },
                     onAnswerKeyClick = { showAnswerKeyDialog = true },
                     onCorrectionTypeClick = { showCorrectionTypeDialog = true },

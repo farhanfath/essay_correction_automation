@@ -8,11 +8,13 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import project.fix.skripsi.domain.model.AnswerKeyItem
 import project.fix.skripsi.domain.model.CorrectionType
 import project.fix.skripsi.domain.model.EssayCategory
 import project.fix.skripsi.domain.usecase.EvaluateEssayUseCase
+import project.fix.skripsi.presentation.state.EssayData
 import project.fix.skripsi.presentation.utils.common.base.state.EssayState
 import project.fix.skripsi.presentation.utils.common.base.state.UiState
 import project.fix.skripsi.presentation.utils.common.base.state.toUiState
@@ -27,110 +29,86 @@ class EssayViewModel @Inject constructor(
   private val evaluateEssayUseCase: EvaluateEssayUseCase
 ) : ViewModel() {
 
-  private val _selectedImageUris = MutableStateFlow<List<Uri>>(emptyList())
-  val selectedImageUris = _selectedImageUris.asStateFlow()
-
   private val _result = MutableStateFlow<EssayState>(UiState.Idle)
   val result: StateFlow<EssayState> = _result.asStateFlow()
 
-  private val _selectedCategory = MutableStateFlow<EssayCategory?>(null)
-  val selectedCategory = _selectedCategory.asStateFlow()
-
-  private val _answerKeyItems = MutableStateFlow<List<AnswerKeyItem>>(emptyList())
-  val answerKeyItems = _answerKeyItems.asStateFlow()
-
-  private val _correctionType = MutableStateFlow(CorrectionType.AI)
-  val correctionType = _correctionType.asStateFlow()
+  private val _essayData = MutableStateFlow(EssayData())
+  val essayData = _essayData.asStateFlow()
 
   fun evaluateEssay(context: Context) {
     viewModelScope.launch {
       _result.value = UiState.Loading
 
-      val imagesList = _selectedImageUris.value
+      val imagesList = essayData.value.selectedImageUris
       if (imagesList.isEmpty()) {
         _result.value = UiState.Error("Tidak ada gambar valid")
         return@launch
       }
 
-      // image for send to evaluation
       val bitmaps = imagesList.map { uri -> uriToBitmap(context, uri) }
       val mergedBitmap = mergeImagesVertically(bitmaps)
       val tempFile = bitmapToTempFile(context, mergedBitmap)
 
-      // category
-      val category = _selectedCategory.value
-      val quizCategoryType = category?.id ?: ""
+      val category = essayData.value.selectedCategory?.id ?: ""
+      val answerKeysList = essayData.value.answerKeyItems.map { it.answer }
+      val correctionType = essayData.value.correctionType.name
 
-      // answer_key
-      val answerKeysList = answerKeyItems.value.map { it.answer }
-      val correctionType = correctionType.value.name
-
-      val response = evaluateEssayUseCase(tempFile, quizCategoryType, correctionType, answerKeysList)
+      val response = evaluateEssayUseCase(tempFile, category, correctionType, answerKeysList)
       _result.value = response.toUiState()
     }
   }
 
   fun addSingleImage(uri: Uri) {
-    val currentList = _selectedImageUris.value.toMutableList()
-    currentList.add(uri)
-    _selectedImageUris.value = currentList
+    _essayData.update { it.copy(selectedImageUris = it.selectedImageUris + uri) }
   }
 
-  // Add multiple images
   fun addSelectedImages(uris: List<Uri>) {
-    val currentList = _selectedImageUris.value.toMutableList()
-    currentList.addAll(uris)
-    _selectedImageUris.value = currentList
+    _essayData.update { it.copy(selectedImageUris = it.selectedImageUris + uris) }
   }
 
-  // Remove an image at a specific index
   fun removeImage(index: Int) {
-    if (index in _selectedImageUris.value.indices) {
-      val currentList = _selectedImageUris.value.toMutableList()
-      currentList.removeAt(index)
-      _selectedImageUris.value = currentList
+    _essayData.update {
+      val currentList = it.selectedImageUris.toMutableList()
+      if (index in currentList.indices) {
+        currentList.removeAt(index)
+      }
+      it.copy(selectedImageUris = currentList)
     }
   }
 
-  // Reorder images - Metode dengan fromIndex dan toIndex
   fun reorderImages(fromIndex: Int, toIndex: Int) {
-    if (fromIndex in _selectedImageUris.value.indices &&
-      toIndex in _selectedImageUris.value.indices &&
-      fromIndex != toIndex) {
-
-      val currentList = _selectedImageUris.value.toMutableList()
-      val item = currentList.removeAt(fromIndex)
-      currentList.add(toIndex, item)
-      _selectedImageUris.value = currentList
+    _essayData.update {
+      val list = it.selectedImageUris.toMutableList()
+      if (fromIndex in list.indices && toIndex in list.indices && fromIndex != toIndex) {
+        val item = list.removeAt(fromIndex)
+        list.add(toIndex, item)
+      }
+      it.copy(selectedImageUris = list)
     }
   }
 
-  // Metode baru untuk memperbarui seluruh urutan gambar
   fun updateImagesOrder(newOrderedUris: List<Uri>) {
-    _selectedImageUris.value = newOrderedUris
+    _essayData.update { it.copy(selectedImageUris = newOrderedUris) }
   }
 
-  // Clear all images
   fun clearSelectedImages() {
-    _selectedImageUris.value = emptyList()
+    _essayData.update { it.copy(selectedImageUris = emptyList()) }
   }
 
   fun resetState() {
-    clearSelectedImages()
+    _essayData.value = EssayData() // Reset all to default
     _result.value = UiState.Idle
   }
 
-  // category
   fun setSelectedCategory(category: EssayCategory) {
-    _selectedCategory.value = category
+    _essayData.update { it.copy(selectedCategory = category) }
   }
 
-  // answer key handler
   fun updateAnswerKeyItems(items: List<AnswerKeyItem>) {
-    _answerKeyItems.value = items
+    _essayData.update { it.copy(answerKeyItems = items) }
   }
 
   fun setCorrectionType(type: CorrectionType) {
-    _correctionType.value = type
+    _essayData.update { it.copy(correctionType = type) }
   }
 }
