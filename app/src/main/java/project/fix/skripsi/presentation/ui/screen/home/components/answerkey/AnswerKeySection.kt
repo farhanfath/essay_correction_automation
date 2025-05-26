@@ -27,7 +27,6 @@ import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Delete
-import androidx.compose.material.icons.rounded.FilterList
 import androidx.compose.material.icons.rounded.Key
 import androidx.compose.material.icons.rounded.Psychology
 import androidx.compose.material3.Button
@@ -57,15 +56,12 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import project.fix.skripsi.domain.model.AnswerKeyItem
 import project.fix.skripsi.domain.model.CorrectionType
-import project.fix.skripsi.domain.model.EssayCategory
 
 @Composable
 fun EssayInfoSummary(
     imageUris: List<Uri>,
-    category: EssayCategory?,
     answerKeyItems: List<AnswerKeyItem>,
     correctionType: CorrectionType,
-    onCategoryClick: () -> Unit,
     onAnswerKeyClick: () -> Unit,
     onCorrectionTypeClick: () -> Unit,
     onCloseDialog: () -> Unit
@@ -108,48 +104,6 @@ fun EssayInfoSummary(
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Spacer(modifier = Modifier.height(12.dp))
-
-                // Kategori
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(8.dp))
-                        .clickable { onCategoryClick() }
-                        .padding(vertical = 10.dp, horizontal = 12.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Rounded.FilterList,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = "Kategori Essay",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-                        )
-                        Text(
-                            text = category?.displayName ?: "Belum dipilih",
-                            style = MaterialTheme.typography.bodyLarge,
-                            fontWeight = FontWeight.Medium,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
-                    Icon(
-                        imageVector = Icons.Default.ChevronRight,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-                    )
-                }
-
-                HorizontalDivider(
-                    modifier = Modifier.padding(vertical = 4.dp),
-                    thickness = 1.dp,
-                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
-                )
 
                 // Kunci Jawaban
                 if (correctionType == CorrectionType.ANSWER_KEY) {
@@ -237,7 +191,7 @@ fun EssayInfoSummary(
                 }
 
                 // Status kesiapan
-                val isReady = imageUris.isNotEmpty() && category != null &&
+                val isReady = imageUris.isNotEmpty() &&
                         (correctionType == CorrectionType.AI || answerKeyItems.isNotEmpty())
 
                 Spacer(modifier = Modifier.height(16.dp))

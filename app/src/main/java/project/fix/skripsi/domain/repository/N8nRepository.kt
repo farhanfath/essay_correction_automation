@@ -7,7 +7,6 @@ import java.io.File
 interface N8nRepository {
     suspend fun evaluateEssay(
         imageFile: File,
-        quizType: String,
         evaluationCategory: String,
         answerKey: List<String>
     ): ResultResponse<HasilKoreksi>

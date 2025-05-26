@@ -13,12 +13,11 @@ class N8nRepositoryImpl @Inject constructor(
 ) : N8nRepository {
     override suspend fun evaluateEssay(
         imageFile: File,
-        quizType: String,
         evaluationCategory: String,
         answerKey: List<String>
     ): ResultResponse<HasilKoreksi> {
         return try {
-            val result = n8nDataSource.evaluateEssay(imageFile, quizType, evaluationCategory, answerKey)
+            val result = n8nDataSource.evaluateEssay(imageFile, evaluationCategory, answerKey)
             result.fold(
                 onSuccess = {
                     val response = WebhookResponse.transform(it)

@@ -6,7 +6,6 @@ import java.io.File
 interface N8nDataSource {
     suspend fun evaluateEssay(
         imageFile: File,
-        quizType: String,
         evaluationCategory: String,
         answerKey: List<String>
     ): Result<WebhookResponse>

@@ -12,7 +12,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import project.fix.skripsi.domain.model.AnswerKeyItem
 import project.fix.skripsi.domain.model.CorrectionType
-import project.fix.skripsi.domain.model.EssayCategory
 import project.fix.skripsi.domain.usecase.EvaluateEssayUseCase
 import project.fix.skripsi.presentation.state.EssayData
 import project.fix.skripsi.presentation.utils.common.base.state.EssayState
@@ -49,11 +48,10 @@ class EssayViewModel @Inject constructor(
       val mergedBitmap = mergeImagesVertically(bitmaps)
       val tempFile = bitmapToTempFile(context, mergedBitmap)
 
-      val category = essayData.value.selectedCategory?.id ?: ""
       val answerKeysList = essayData.value.answerKeyItems.map { it.answer }
       val correctionType = essayData.value.correctionType.name
 
-      val response = evaluateEssayUseCase(tempFile, category, correctionType, answerKeysList)
+      val response = evaluateEssayUseCase(tempFile, correctionType, answerKeysList)
       _result.value = response.toUiState()
     }
   }
@@ -98,10 +96,6 @@ class EssayViewModel @Inject constructor(
   fun resetState() {
     _essayData.value = EssayData() // Reset all to default
     _result.value = UiState.Idle
-  }
-
-  fun setSelectedCategory(category: EssayCategory) {
-    _essayData.update { it.copy(selectedCategory = category) }
   }
 
   fun updateAnswerKeyItems(items: List<AnswerKeyItem>) {

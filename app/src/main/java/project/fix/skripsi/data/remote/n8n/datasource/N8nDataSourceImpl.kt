@@ -15,18 +15,12 @@ class N8nDataSourceImpl @Inject constructor(
 
     override suspend fun evaluateEssay(
         imageFile: File,
-        quizType: String,
         evaluationCategory: String,
         answerKey: List<String>
     ): Result<WebhookResponse> {
         return withContext(Dispatchers.IO) {
             try {
                 val imagePart = imageFile.toImagePart("image")
-
-                val quizTypePart = createJsonPart(
-                    partName = "type",
-                    content = mapOf("source" to "android", "quizType" to quizType)
-                )
 
                 val evaluationCategoryPart = createJsonPart(
                     partName = "evaluation_category",
@@ -38,7 +32,7 @@ class N8nDataSourceImpl @Inject constructor(
                     content = answerKey
                 )
 
-                val response = n8nApiService.evaluateEssay(imagePart, quizTypePart, evaluationCategoryPart, answerKeyPart)
+                val response = n8nApiService.evaluateEssay(imagePart, evaluationCategoryPart, answerKeyPart)
 
                 if (response.isSuccessful && response.body() != null) {
                     Result.success(response.body()!!)

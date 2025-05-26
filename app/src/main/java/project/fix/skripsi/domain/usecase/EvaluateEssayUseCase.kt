@@ -11,10 +11,9 @@ class EvaluateEssayUseCase @Inject constructor(
 ) {
   suspend operator fun invoke(
     imageFile: File,
-    quizType: String,
     evaluationCategory: String,
     answerKey: List<String>
   ): ResultResponse<HasilKoreksi> {
-    return n8nRepository.evaluateEssay(imageFile, quizType, evaluationCategory, answerKey)
+    return n8nRepository.evaluateEssay(imageFile, evaluationCategory, answerKey)
   }
 }

@@ -32,7 +32,6 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.outlined.DocumentScanner
 import androidx.compose.material.icons.rounded.AddPhotoAlternate
 import androidx.compose.material.icons.rounded.Close
-import androidx.compose.material.icons.rounded.FilterList
 import androidx.compose.material.icons.rounded.Key
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.Psychology
@@ -61,7 +60,6 @@ import project.fix.skripsi.domain.model.CorrectionType
 import project.fix.skripsi.presentation.ui.screen.home.components.answerkey.AnswerKeyDialog
 import project.fix.skripsi.presentation.ui.screen.home.components.answerkey.CorrectionTypeDialog
 import project.fix.skripsi.presentation.ui.screen.home.components.answerkey.EssayInfoSummary
-import project.fix.skripsi.presentation.ui.screen.home.components.categories.CategorySelectionDialog
 import project.fix.skripsi.presentation.ui.screen.home.components.previewimages.AdaptiveImagePreviewSection
 import project.fix.skripsi.presentation.ui.screen.home.components.previewimages.ImageSourceChooserSection
 import project.fix.skripsi.presentation.utils.helper.rememberMediaHelper
@@ -74,10 +72,6 @@ fun HomeScreen(
 ) {
     val context = LocalContext.current
 
-//    val imageUris by viewModel.selectedImageUris.collectAsState()
-//    val selectedCategory by viewModel.selectedCategory.collectAsState()
-//    val answerKeyItems by viewModel.answerKeyItems.collectAsState()
-//    val correctionType by viewModel.correctionType.collectAsState()
     val essayData by viewModel.essayData.collectAsState()
 
     val mediaHelper = rememberMediaHelper(
@@ -92,7 +86,6 @@ fun HomeScreen(
 
     var showPreviewRow by remember { mutableStateOf(false) }
     var showMediaOptions by remember { mutableStateOf(false) }
-    var showCategoryDialog by remember { mutableStateOf(false) }
     var showAnswerKeyDialog by remember { mutableStateOf(false) }
     var showCorrectionTypeDialog by remember { mutableStateOf(false) }
     var showDetailEvaluation by remember { mutableStateOf(false) }
@@ -105,17 +98,6 @@ fun HomeScreen(
         ),
         label = "mediaOptionsVisibility"
     )
-
-    if (showCategoryDialog) {
-        CategorySelectionDialog(
-            onDismiss = { showCategoryDialog = false },
-            onCategorySelected = { category ->
-                viewModel.setSelectedCategory(category)
-                showCategoryDialog = false
-            },
-            selectedCategory = essayData.selectedCategory
-        )
-    }
 
     if (showAnswerKeyDialog) {
         AnswerKeyDialog(
@@ -208,21 +190,6 @@ fun HomeScreen(
                         )
                     }
 
-                    // Category button
-                    FloatingActionButton(
-                        onClick = { showCategoryDialog = true },
-                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                        shape = CircleShape,
-                        modifier = Modifier.size(42.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Rounded.FilterList,
-                            contentDescription = "Kategori Essay",
-                            modifier = Modifier.size(20.dp)
-                        )
-                    }
-
                     // Answer Key button
                     FloatingActionButton(
                         onClick = { showAnswerKeyDialog = true },
@@ -260,7 +227,7 @@ fun HomeScreen(
                             viewModel.evaluateEssay(context)
                             onNavigateToResult()
                         },
-                        enabled = essayData.selectedImageUris.isNotEmpty() && essayData.selectedCategory != null &&
+                        enabled = essayData.selectedImageUris.isNotEmpty() &&
                                 (essayData.correctionType == CorrectionType.AI || essayData.answerKeyItems.isNotEmpty()),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.primary,
@@ -404,10 +371,8 @@ fun HomeScreen(
             ) {
                 EssayInfoSummary(
                     imageUris = essayData.selectedImageUris,
-                    category = essayData.selectedCategory,
                     answerKeyItems = essayData.answerKeyItems,
                     correctionType = essayData.correctionType,
-                    onCategoryClick = { showCategoryDialog = true },
                     onAnswerKeyClick = { showAnswerKeyDialog = true },
                     onCorrectionTypeClick = { showCorrectionTypeDialog = true },
                     onCloseDialog = { showDetailEvaluation = false }
