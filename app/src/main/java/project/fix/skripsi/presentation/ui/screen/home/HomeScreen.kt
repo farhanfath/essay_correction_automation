@@ -1,5 +1,6 @@
 package project.fix.skripsi.presentation.ui.screen.home
 
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
@@ -57,9 +58,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import project.fix.skripsi.domain.model.CorrectionType
-import project.fix.skripsi.presentation.ui.screen.home.components.answerkey.AnswerKeyDialog
-import project.fix.skripsi.presentation.ui.screen.home.components.answerkey.CorrectionTypeDialog
-import project.fix.skripsi.presentation.ui.screen.home.components.answerkey.EssayInfoSummary
+import project.fix.skripsi.presentation.ui.screen.home.components.dialog.AnswerKeyDialog
+import project.fix.skripsi.presentation.ui.screen.home.components.dialog.CorrectionTypeDialog
+import project.fix.skripsi.presentation.ui.screen.home.components.dialog.EssayInfoSummary
+import project.fix.skripsi.presentation.ui.screen.home.components.dialog.loadSample
 import project.fix.skripsi.presentation.ui.screen.home.components.previewimages.AdaptiveImagePreviewSection
 import project.fix.skripsi.presentation.ui.screen.home.components.previewimages.ImageSourceChooserSection
 import project.fix.skripsi.presentation.utils.helper.rememberMediaHelper
@@ -102,10 +104,14 @@ fun HomeScreen(
     if (showAnswerKeyDialog) {
         AnswerKeyDialog(
             answerKeyItems = essayData.answerKeyItems,
+            savedTemplates = loadSample(),
             onDismiss = { showAnswerKeyDialog = false },
             onAnswerKeySaved = { newAnswerKeyItems ->
                 viewModel.updateAnswerKeyItems(newAnswerKeyItems)
                 showAnswerKeyDialog = false
+            },
+            onSaveAsTemplate = { _, _ ->
+                Log.d("test","test")
             }
         )
     }
@@ -191,18 +197,20 @@ fun HomeScreen(
                     }
 
                     // Answer Key button
-                    FloatingActionButton(
-                        onClick = { showAnswerKeyDialog = true },
-                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                        shape = CircleShape,
-                        modifier = Modifier.size(42.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Rounded.List,
-                            contentDescription = "Kunci Jawaban",
-                            modifier = Modifier.size(20.dp)
-                        )
+                    if (essayData.correctionType == CorrectionType.ANSWER_KEY) {
+                        FloatingActionButton(
+                            onClick = { showAnswerKeyDialog = true },
+                            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                            contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                            shape = CircleShape,
+                            modifier = Modifier.size(42.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Rounded.List,
+                                contentDescription = "Kunci Jawaban",
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
                     }
 
                     // Correction Type button
