@@ -8,6 +8,7 @@ plugins {
     alias(libs.plugins.kotlin.kapt) // kapt
     alias(libs.plugins.kotlin.serialization) // serialization
     alias(libs.plugins.kotlin.parcelize) // parcelize
+    alias(libs.plugins.devtools.ksp) // ksp
 }
 
 val localProperties = Properties().apply {
@@ -124,4 +125,13 @@ dependencies {
 
     // accompanist permission
     implementation (libs.accompanist.permissions)
+
+    // room database
+    implementation(libs.androidx.room.runtime)
+    implementation (libs.androidx.room.ktx)
+    implementation(libs.androidx.room.paging)
+    ksp (libs.androidx.room.compiler)
+
+    // gson converter
+    implementation (libs.gson)
 }

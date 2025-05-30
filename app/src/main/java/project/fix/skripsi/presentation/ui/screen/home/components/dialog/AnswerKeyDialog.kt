@@ -79,7 +79,6 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import project.fix.skripsi.domain.model.AnswerKeyItem
 
-// Data class untuk template kunci jawaban yang tersimpan
 data class SavedAnswerKeyTemplate(
     val id: Int,
     val name: String,
