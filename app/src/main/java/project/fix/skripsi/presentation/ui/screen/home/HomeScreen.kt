@@ -1,6 +1,5 @@
 package project.fix.skripsi.presentation.ui.screen.home
 
-import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
@@ -45,6 +44,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -61,28 +61,31 @@ import project.fix.skripsi.domain.model.CorrectionType
 import project.fix.skripsi.presentation.ui.screen.home.components.dialog.AnswerKeyDialog
 import project.fix.skripsi.presentation.ui.screen.home.components.dialog.CorrectionTypeDialog
 import project.fix.skripsi.presentation.ui.screen.home.components.dialog.EssayInfoSummary
-import project.fix.skripsi.presentation.ui.screen.home.components.dialog.loadSample
 import project.fix.skripsi.presentation.ui.screen.home.components.previewimages.AdaptiveImagePreviewSection
 import project.fix.skripsi.presentation.ui.screen.home.components.previewimages.ImageSourceChooserSection
 import project.fix.skripsi.presentation.utils.helper.rememberMediaHelper
 import project.fix.skripsi.presentation.viewmodel.EssayViewModel
+import project.fix.skripsi.presentation.viewmodel.SavedAnswerKeyViewModel
 
 @Composable
 fun HomeScreen(
     onNavigateToResult: () -> Unit,
-    viewModel: EssayViewModel
+    essayViewModel: EssayViewModel,
+    savedAnswerKeyViewModel: SavedAnswerKeyViewModel
 ) {
     val context = LocalContext.current
 
-    val essayData by viewModel.essayData.collectAsState()
+    val essayData by essayViewModel.essayData.collectAsState()
+
+    val savedAnswerKey by savedAnswerKeyViewModel.savedAnswerKeys.collectAsState()
 
     val mediaHelper = rememberMediaHelper(
         context = context,
         addImageUri = { uri ->
-            viewModel.addSingleImage(uri)
+            essayViewModel.addSingleImage(uri)
         },
         addImageUris = { uris ->
-            viewModel.addSelectedImages(uris)
+            essayViewModel.addSelectedImages(uris)
         }
     )
 
@@ -104,14 +107,20 @@ fun HomeScreen(
     if (showAnswerKeyDialog) {
         AnswerKeyDialog(
             answerKeyItems = essayData.answerKeyItems,
-            savedTemplates = loadSample(),
+            savedAnswerKeyTemplate = savedAnswerKey,
             onDismiss = { showAnswerKeyDialog = false },
             onAnswerKeySaved = { newAnswerKeyItems ->
-                viewModel.updateAnswerKeyItems(newAnswerKeyItems)
+                essayViewModel.updateAnswerKeyItems(newAnswerKeyItems)
                 showAnswerKeyDialog = false
             },
-            onSaveAsTemplate = { _, _ ->
-                Log.d("test","test")
+            onLoadTemplate = { savedAnswerKeyId ->
+                savedAnswerKeyViewModel.getAnswerKeyById(savedAnswerKeyId)
+            },
+            onSaveAsTemplate = { title, answerKeysItem ->
+                savedAnswerKeyViewModel.insertSavedAnswerKey(title, answerKeysItem)
+            },
+            onDeletedTemplate = { templateId ->
+                savedAnswerKeyViewModel.deleteSavedAnswerKeyById(templateId)
             }
         )
     }
@@ -121,7 +130,7 @@ fun HomeScreen(
             currentType = essayData.correctionType,
             onDismiss = { showCorrectionTypeDialog = false },
             onTypeSelected = { type ->
-                viewModel.setCorrectionType(type)
+                essayViewModel.setCorrectionType(type)
                 showCorrectionTypeDialog = false
             }
         )
@@ -232,7 +241,7 @@ fun HomeScreen(
                     // Mulai Evaluasi Button
                     Button(
                         onClick = {
-                            viewModel.evaluateEssay(context)
+                            essayViewModel.evaluateEssay(context)
                             onNavigateToResult()
                         },
                         enabled = essayData.selectedImageUris.isNotEmpty() &&
@@ -286,10 +295,10 @@ fun HomeScreen(
                             showPreviewRow = it
                         },
                         onDeleteImage = {
-                            viewModel.removeImage(it)
+                            essayViewModel.removeImage(it)
                         },
                         onReorderImages = { newOrderedUris ->
-                            viewModel.updateImagesOrder(newOrderedUris)
+                            essayViewModel.updateImagesOrder(newOrderedUris)
                         }
                     )
                 } else {

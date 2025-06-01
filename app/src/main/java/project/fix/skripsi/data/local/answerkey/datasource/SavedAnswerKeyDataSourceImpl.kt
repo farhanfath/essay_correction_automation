@@ -1,6 +1,5 @@
 package project.fix.skripsi.data.local.answerkey.datasource
 
-import androidx.paging.PagingSource
 import project.fix.skripsi.data.local.answerkey.dao.SavedAnswerKeyDao
 import project.fix.skripsi.data.local.answerkey.model.SavedAnswerKeyEntity
 import javax.inject.Inject
@@ -12,7 +11,7 @@ class SavedAnswerKeyDataSourceImpl @Inject constructor(
     savedAnswerKeyDao.insertAnswerKey(answerKey)
   }
 
-  override fun getAllAnswerKeys(): PagingSource<Int, SavedAnswerKeyEntity> {
+  override suspend fun getAllAnswerKeys(): List<SavedAnswerKeyEntity> {
     return savedAnswerKeyDao.getAllAnswerKeys()
   }
 

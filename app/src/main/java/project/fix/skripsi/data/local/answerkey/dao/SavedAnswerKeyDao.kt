@@ -1,19 +1,19 @@
 package project.fix.skripsi.data.local.answerkey.dao
 
-import androidx.paging.PagingSource
 import androidx.room.Dao
 import androidx.room.Insert
+import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import project.fix.skripsi.data.local.answerkey.model.SavedAnswerKeyEntity
 
 @Dao
 interface SavedAnswerKeyDao {
-  @Insert
+  @Insert(onConflict = OnConflictStrategy.REPLACE)
   suspend fun insertAnswerKey(answerKey: SavedAnswerKeyEntity)
 
   @Query("SELECT * FROM essay_answer_key")
-  fun getAllAnswerKeys(): PagingSource<Int, SavedAnswerKeyEntity>
+  suspend fun getAllAnswerKeys(): List<SavedAnswerKeyEntity>
 
   @Query("SELECT * FROM essay_answer_key WHERE id = :id")
   suspend fun getAnswerKeyById(id: Int): SavedAnswerKeyEntity?

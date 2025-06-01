@@ -10,11 +10,13 @@ import androidx.navigation.compose.composable
 import project.fix.skripsi.presentation.ui.screen.home.HomeScreen
 import project.fix.skripsi.presentation.ui.screen.result.EnhancedResultScreen
 import project.fix.skripsi.presentation.viewmodel.EssayViewModel
+import project.fix.skripsi.presentation.viewmodel.SavedAnswerKeyViewModel
 
 @Composable
 fun AppNavHost(
     navController: NavHostController,
-    viewModel: EssayViewModel
+    essayViewModel: EssayViewModel,
+    savedAnswerKeyViewModel: SavedAnswerKeyViewModel
 ) {
     Scaffold { innerPadding ->
         NavHost(
@@ -27,13 +29,14 @@ fun AppNavHost(
                     onNavigateToResult = {
                         navController.navigate(Screen.Result)
                     },
-                    viewModel = viewModel
+                    essayViewModel = essayViewModel,
+                    savedAnswerKeyViewModel = savedAnswerKeyViewModel
                 )
             }
             composable<Screen.Result> {
                 EnhancedResultScreen(
                     navController = navController,
-                    viewModel = viewModel
+                    viewModel = essayViewModel
                 )
             }
         }

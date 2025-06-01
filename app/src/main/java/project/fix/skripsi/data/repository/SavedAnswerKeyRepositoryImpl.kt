@@ -1,10 +1,5 @@
 package project.fix.skripsi.data.repository
 
-import androidx.paging.Pager
-import androidx.paging.PagingConfig
-import androidx.paging.map
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
 import project.fix.skripsi.data.local.answerkey.datasource.SavedAnswerKeyDataSource
 import project.fix.skripsi.data.local.answerkey.model.SavedAnswerKeyEntity
 import project.fix.skripsi.data.local.answerkey.model.toEntity
@@ -18,16 +13,9 @@ class SavedAnswerKeyRepositoryImpl @Inject constructor(
   override suspend fun insertAnswerKey(answerKey: SavedAnswerKey) =
     savedAnswerKeyDataSource.insertAnswerKey(answerKey.toEntity())
 
-  override fun getAllAnswerKeys(): Flow<List<SavedAnswerKey>> {
-    return Pager(config = PagingConfig(pageSize = 10)) {
-      savedAnswerKeyDataSource.getAllAnswerKeys()
-    }.flow.map { pagingData ->
-      val savedAnswerKey = mutableListOf<SavedAnswerKey>()
-      pagingData.map { entity ->
-        val data = SavedAnswerKeyEntity.toDomain(entity)
-        savedAnswerKey.add(data)
-      }
-      savedAnswerKey
+  override suspend fun getAllAnswerKeys(): List<SavedAnswerKey> {
+    return savedAnswerKeyDataSource.getAllAnswerKeys().map {
+      SavedAnswerKeyEntity.toDomain(it)
     }
   }
 

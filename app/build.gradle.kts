@@ -134,4 +134,8 @@ dependencies {
 
     // gson converter
     implementation (libs.gson)
+
+    // paging3
+    implementation (libs.paging.runtime)
+    implementation(libs.androidx.paging.compose)
 }

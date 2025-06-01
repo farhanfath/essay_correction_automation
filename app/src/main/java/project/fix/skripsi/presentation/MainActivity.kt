@@ -11,6 +11,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import project.fix.skripsi.presentation.ui.navigation.AppNavHost
 import project.fix.skripsi.presentation.ui.theme.SkripsiappTheme
 import project.fix.skripsi.presentation.viewmodel.EssayViewModel
+import project.fix.skripsi.presentation.viewmodel.SavedAnswerKeyViewModel
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -18,13 +19,15 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            val viewModel: EssayViewModel = hiltViewModel()
+            val essayViewModel: EssayViewModel = hiltViewModel()
+            val savedAnswerKeyViewModel: SavedAnswerKeyViewModel = hiltViewModel()
             val navController = rememberNavController()
 
             EssayApp {
                 AppNavHost(
                     navController = navController,
-                    viewModel = viewModel
+                    essayViewModel = essayViewModel,
+                    savedAnswerKeyViewModel = savedAnswerKeyViewModel
                 )
             }
         }
