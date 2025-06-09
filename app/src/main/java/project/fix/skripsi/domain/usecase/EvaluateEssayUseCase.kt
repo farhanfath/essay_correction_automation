@@ -1,5 +1,6 @@
 package project.fix.skripsi.domain.usecase
 
+import project.fix.skripsi.domain.model.AnswerKeyItem
 import project.fix.skripsi.domain.model.HasilKoreksi
 import project.fix.skripsi.domain.repository.N8nRepository
 import project.fix.skripsi.domain.utils.ResultResponse
@@ -12,7 +13,7 @@ class EvaluateEssayUseCase @Inject constructor(
   suspend operator fun invoke(
     imageFile: File,
     evaluationCategory: String,
-    answerKey: List<String>
+    answerKey: List<AnswerKeyItem>
   ): ResultResponse<HasilKoreksi> {
     return n8nRepository.evaluateEssay(imageFile, evaluationCategory, answerKey)
   }

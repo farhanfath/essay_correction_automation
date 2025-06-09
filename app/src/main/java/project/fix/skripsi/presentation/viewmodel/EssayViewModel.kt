@@ -48,7 +48,7 @@ class EssayViewModel @Inject constructor(
       val mergedBitmap = mergeImagesVertically(bitmaps)
       val tempFile = bitmapToTempFile(context, mergedBitmap)
 
-      val answerKeysList = essayData.value.answerKeyItems.map { it.answer }
+      val answerKeysList = essayData.value.answerKeyItems
       val correctionType = essayData.value.correctionType.name
 
       val response = evaluateEssayUseCase(tempFile, correctionType, answerKeysList)

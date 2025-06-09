@@ -5,10 +5,12 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -17,12 +19,16 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Assignment
+import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.ThumbUp
 import androidx.compose.material.icons.filled.ThumbsUpDown
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -39,163 +45,131 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import project.fix.skripsi.domain.model.HasilKoreksi
+import project.fix.skripsi.domain.model.SiswaData
+import project.fix.skripsi.presentation.ui.screen.result.StatItem
+import kotlin.math.roundToInt
 
 @Composable
 fun ResultHeader(
-  hasil: HasilKoreksi,
-  scoreProgress: Float
+  siswaData: SiswaData,
+  scoreProgress: Float,
+  showStudentName: Boolean = false
 ) {
-  // Header animation
-  val scale by animateFloatAsState(
-    targetValue = 1f,
-    animationSpec = spring(
-      dampingRatio = Spring.DampingRatioMediumBouncy,
-      stiffness = Spring.StiffnessLow
-    )
-  )
-
   Card(
-    modifier = Modifier
-      .fillMaxWidth()
-      .scale(scale),
-    shape = RoundedCornerShape(24.dp),
+    modifier = Modifier.fillMaxWidth(),
     colors = CardDefaults.cardColors(
       containerColor = MaterialTheme.colorScheme.primaryContainer
-    ),
-    elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
+    )
   ) {
     Column(
-      modifier = Modifier
-        .padding(24.dp)
-        .fillMaxWidth(),
+      modifier = Modifier.padding(24.dp),
       horizontalAlignment = Alignment.CenterHorizontally
     ) {
-      // Avatar icon
-      Box(
-        modifier = Modifier
-          .size(80.dp)
-          .clip(CircleShape)
-          .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)),
-        contentAlignment = Alignment.Center
-      ) {
-        Icon(
-          imageVector = Icons.Default.Person,
-          contentDescription = null,
-          tint = MaterialTheme.colorScheme.primary,
-          modifier = Modifier.size(40.dp)
+      if (showStudentName) {
+        Text(
+          text = siswaData.nama,
+          style = MaterialTheme.typography.headlineSmall,
+          color = MaterialTheme.colorScheme.onPrimaryContainer,
+          fontWeight = FontWeight.Bold
         )
+        Spacer(modifier = Modifier.height(8.dp))
       }
 
-      Spacer(modifier = Modifier.height(16.dp))
-
-      Text(
-        text = hasil.nama,
-        style = MaterialTheme.typography.headlineSmall,
-        fontWeight = FontWeight.Bold,
-        color = MaterialTheme.colorScheme.onPrimaryContainer
-      )
-
-      Spacer(modifier = Modifier.height(4.dp))
-
-      Text(
-        text = "Hasil Evaluasi Essay",
-        style = MaterialTheme.typography.bodyMedium,
-        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
-      )
-
-      Spacer(modifier = Modifier.height(24.dp))
-
-      // Animated circular progress for score
+      // Circular Progress Indicator untuk skor
       Box(
-        modifier = Modifier.size(140.dp),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
+        modifier = Modifier.size(120.dp)
       ) {
-        // Backdrop circle
-        val color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
-        Canvas(modifier = Modifier.size(140.dp)) {
-          drawArc(
-            color = color,
-            startAngle = 0f,
-            sweepAngle = 360f,
-            useCenter = false,
-            style = Stroke(width = 12f, cap = StrokeCap.Round)
-          )
-        }
+        CircularProgressIndicator(
+          progress = { scoreProgress },
+          modifier = Modifier.fillMaxSize(),
+          color = when {
+            siswaData.skorAkhir >= 80 -> Color(0xFF4CAF50) // Green
+            siswaData.skorAkhir >= 60 -> Color(0xFFFF9800) // Orange
+            else -> Color(0xFFF44336) // Red
+          },
+          strokeWidth = 8.dp,
+          trackColor = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.2f)
+        )
 
-        // Progress arc
-        Canvas(modifier = Modifier.size(140.dp)) {
-          drawArc(
-            color = when {
-              hasil.skorAkhir >= 80 -> Color(0xFF4CAF50) // Green for high score
-              hasil.skorAkhir >= 60 -> Color(0xFFFFC107) // Yellow for medium score
-              else -> Color(0xFFE91E63) // Pink/Red for low score
-            },
-            startAngle = -90f,
-            sweepAngle = 360f * scoreProgress,
-            useCenter = false,
-            style = Stroke(width = 12f, cap = StrokeCap.Round)
-          )
-        }
-
-        // Center text
         Column(
           horizontalAlignment = Alignment.CenterHorizontally
         ) {
           Text(
-            text = "${(scoreProgress * 100).toInt()}",
-            fontSize = 36.sp,
+            text = "${siswaData.skorAkhir.roundToInt()}",
+            style = MaterialTheme.typography.headlineLarge,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onPrimaryContainer
           )
           Text(
-            text = "Nilai",
-            fontSize = 16.sp,
+            text = "/ 100",
+            style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
           )
         }
       }
 
-      Spacer(modifier = Modifier.height(24.dp))
+      Spacer(modifier = Modifier.height(16.dp))
 
-      // Score interpretation
-      val scoreInterpretation = when {
-        hasil.skorAkhir >= 90 -> "Luar Biasa"
-        hasil.skorAkhir >= 80 -> "Sangat Baik"
-        hasil.skorAkhir >= 70 -> "Baik"
-        hasil.skorAkhir >= 60 -> "Cukup"
-        else -> "Perlu Perbaikan"
+      // Grade dan deskripsi
+      val grade = when {
+        siswaData.skorAkhir >= 90 -> "A" to "Excellent"
+        siswaData.skorAkhir >= 80 -> "B" to "Good"
+        siswaData.skorAkhir >= 70 -> "C" to "Fair"
+        siswaData.skorAkhir >= 60 -> "D" to "Poor"
+        else -> "F" to "Fail"
       }
 
       Row(
-        modifier = Modifier
-          .fillMaxWidth()
-          .clip(RoundedCornerShape(12.dp))
-          .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f))
-          .padding(12.dp),
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
       ) {
-        Icon(
-          imageVector = when {
-            hasil.skorAkhir >= 80 -> Icons.Default.ThumbUp
-            hasil.skorAkhir >= 60 -> Icons.Default.ThumbsUpDown
-            else -> Icons.Default.Warning
-          },
-          contentDescription = null,
-          tint = when {
-            hasil.skorAkhir >= 80 -> Color(0xFF4CAF50)
-            hasil.skorAkhir >= 60 -> Color(0xFFFFC107)
-            else -> Color(0xFFE91E63)
-          },
-          modifier = Modifier.size(24.dp)
-        )
-
-        Spacer(modifier = Modifier.width(12.dp))
+        Card(
+          colors = CardDefaults.cardColors(
+            containerColor = when {
+              siswaData.skorAkhir >= 80 -> Color(0xFF4CAF50)
+              siswaData.skorAkhir >= 60 -> Color(0xFFFF9800)
+              else -> Color(0xFFF44336)
+            }
+          )
+        ) {
+          Text(
+            text = grade.first,
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            color = Color.White
+          )
+        }
 
         Text(
-          text = scoreInterpretation,
-          style = MaterialTheme.typography.bodyLarge,
-          fontWeight = FontWeight.Medium,
+          text = grade.second,
+          style = MaterialTheme.typography.titleMedium,
           color = MaterialTheme.colorScheme.onPrimaryContainer
+        )
+      }
+
+      Spacer(modifier = Modifier.height(8.dp))
+
+      // Statistics
+      Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceEvenly
+      ) {
+        StatItem(
+          label = "Soal Dijawab",
+          value = "${siswaData.hasilKoreksi.size}",
+          icon = Icons.AutoMirrored.Default.Assignment
+        )
+        StatItem(
+          label = "Rata-rata",
+          value = "${(siswaData.hasilKoreksi.map { it.skor }.average()).roundToInt()}",
+          icon = Icons.AutoMirrored.Default.TrendingUp
+        )
+        StatItem(
+          label = "Tertinggi",
+          value = "${siswaData.hasilKoreksi.maxByOrNull { it.skor }?.skor ?: 0}",
+          icon = Icons.Default.Star
         )
       }
     }

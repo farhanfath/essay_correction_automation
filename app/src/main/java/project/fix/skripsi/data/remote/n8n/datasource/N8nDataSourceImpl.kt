@@ -6,6 +6,7 @@ import project.fix.skripsi.data.remote.n8n.N8nApiService
 import project.fix.skripsi.data.remote.n8n.model.WebhookResponse
 import project.fix.skripsi.data.utils.createJsonPart
 import project.fix.skripsi.data.utils.toImagePart
+import project.fix.skripsi.domain.model.AnswerKeyItem
 import java.io.File
 import javax.inject.Inject
 
@@ -16,7 +17,7 @@ class N8nDataSourceImpl @Inject constructor(
     override suspend fun evaluateEssay(
         imageFile: File,
         evaluationCategory: String,
-        answerKey: List<String>
+        answerKey: List<AnswerKeyItem>
     ): Result<WebhookResponse> {
         return withContext(Dispatchers.IO) {
             try {

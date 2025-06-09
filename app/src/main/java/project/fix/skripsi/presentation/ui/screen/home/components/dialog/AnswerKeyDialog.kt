@@ -158,10 +158,10 @@ fun AnswerKeyDialog(
                             .padding(16.dp)
                     ) {
                         Column(
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier.weight(2f)
                         ) {
                             Text(
-                                text = "🔑 Kunci Jawaban",
+                                text = "Kunci Jawaban",
                                 style = MaterialTheme.typography.headlineSmall,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.primary
@@ -172,13 +172,13 @@ fun AnswerKeyDialog(
                                 horizontalArrangement = Arrangement.spacedBy(12.dp)
                             ) {
                                 Text(
-                                    text = "📊 Total: $totalWeight poin",
+                                    text = "Total: $totalWeight poin",
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     fontWeight = FontWeight.Medium
                                 )
                                 Text(
-                                    text = "✅ $completedItems/${answerKeyList.size} soal",
+                                    text = "$completedItems/${answerKeyList.size} soal",
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.secondary,
                                     fontWeight = FontWeight.Medium

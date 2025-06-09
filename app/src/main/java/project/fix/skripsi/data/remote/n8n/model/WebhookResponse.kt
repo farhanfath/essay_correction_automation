@@ -3,27 +3,42 @@ package project.fix.skripsi.data.remote.n8n.model
 import com.google.gson.annotations.SerializedName
 import project.fix.skripsi.domain.model.HasilKoreksi
 import project.fix.skripsi.domain.model.PerSoal
+import project.fix.skripsi.domain.model.SiswaData
 
 data class WebhookResponse(
+	@SerializedName("daftar_hasil")
+	val resultData: List<SiswaDataResponse>? = null
+) {
+	companion object {
+		fun transform(response: WebhookResponse): HasilKoreksi {
+			return HasilKoreksi(
+				resultData = response.resultData
+					?.map { SiswaDataResponse.transform(it) }
+					?: emptyList()
+			)
+		}
+	}
+}
 
+data class SiswaDataResponse(
 	@field:SerializedName("nama")
 	val nama: String? = null,
 
-	@field:SerializedName("total_skor")
+	@field:SerializedName("skor_akhir")
 	val skorAkhir: Double? = null,
 
 	@field:SerializedName("hasil_koreksi")
-	val hasilKoreksi: List<HasilKoreksiItem?>? = null
+	val hasilKoreksi: List<PerSoalResponse?>? = null
 ) {
 	companion object {
-		fun transform(response: WebhookResponse) : HasilKoreksi {
-			return HasilKoreksi(
+		fun transform(response: SiswaDataResponse) : SiswaData {
+			return SiswaData(
 				nama = response.nama ?: "",
 				skorAkhir = response.skorAkhir ?: 0.0,
 				hasilKoreksi = response.hasilKoreksi
 					?.filterNotNull()
 					?.map {
-						val subResponse = HasilKoreksiItem.transform(it)
+						val subResponse = PerSoalResponse.transform(it)
 						subResponse
 					}
 					?: emptyList()
@@ -32,10 +47,7 @@ data class WebhookResponse(
 	}
 }
 
-data class HasilKoreksiItem(
-
-	@field:SerializedName("penilaian")
-	val penilaian: String? = null,
+data class PerSoalResponse(
 
 	@field:SerializedName("soal")
 	val soal: String? = null,
@@ -43,14 +55,17 @@ data class HasilKoreksiItem(
 	@field:SerializedName("jawaban")
 	val jawaban: String? = null,
 
-	@field:SerializedName("skor")
-	val skor: Int? = null,
+	@field:SerializedName("penilaian")
+	val penilaian: String? = null,
 
 	@field:SerializedName("alasan")
-	val alasan: String? = null
+	val alasan: String? = null,
+
+	@field:SerializedName("skor")
+val skor: Int? = null
 ) {
 	companion object {
-		fun transform(response: HasilKoreksiItem) : PerSoal {
+		fun transform(response: PerSoalResponse) : PerSoal {
 			return PerSoal(
 				penilaian = response.penilaian ?: "",
 				soal = response.soal ?: "",
