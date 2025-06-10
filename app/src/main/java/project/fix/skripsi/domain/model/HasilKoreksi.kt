@@ -1,7 +1,9 @@
 package project.fix.skripsi.domain.model
 
 data class HasilKoreksi (
-    val resultData: List<SiswaData>
+    val evaluationType: CorrectionType,
+    val resultData: List<SiswaData>,
+    val listAnswerKey: List<AnswerKeyItem>
 )
 
 data class SiswaData (

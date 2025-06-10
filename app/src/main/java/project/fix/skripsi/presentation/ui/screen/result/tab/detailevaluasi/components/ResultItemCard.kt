@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.Icons.AutoMirrored
 import androidx.compose.material.icons.automirrored.filled.Comment
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
@@ -31,6 +32,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -44,15 +46,24 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import project.fix.skripsi.domain.model.CorrectionType
+import project.fix.skripsi.domain.model.CorrectionType.AI
 import project.fix.skripsi.domain.model.PerSoal
 
 @Composable
 fun ResultItemCard(
   perSoal: PerSoal,
-  nomorSoal: Int
+  nomorSoal: Int,
+  maxBobot: Int,
+  kunciJawaban: String? = null,
+  tipeEvaluasi: CorrectionType = AI
 ) {
   var expanded by remember { mutableStateOf(false) }
+  var showDetailDialog by remember { mutableStateOf(false) }
+  val isCorrect = perSoal.penilaian == "Benar"
 
   Card(
     modifier = Modifier.fillMaxWidth(),
@@ -72,18 +83,20 @@ fun ResultItemCard(
         horizontalArrangement = Arrangement.SpaceBetween
       ) {
         Row(
+          modifier = Modifier.weight(3f),
           verticalAlignment = Alignment.CenterVertically
         ) {
           // Nomor soal dengan badge
           Box(
             modifier = Modifier
+              .weight(1f)
               .size(40.dp)
               .clip(CircleShape)
               .background(
-                when {
-                  perSoal.skor >= 80 -> Color(0xFF4CAF50).copy(alpha = 0.2f)
-                  perSoal.skor >= 60 -> Color(0xFFFFC107).copy(alpha = 0.2f)
-                  else -> Color(0xFFE91E63).copy(alpha = 0.2f)
+                if (isCorrect) {
+                  Color(0xFF4CAF50).copy(alpha = 0.2f)
+                } else {
+                  Color(0xFFE91E63).copy(alpha = 0.2f)
                 }
               ),
             contentAlignment = Alignment.Center
@@ -92,10 +105,10 @@ fun ResultItemCard(
               text = "$nomorSoal",
               style = MaterialTheme.typography.titleMedium,
               fontWeight = FontWeight.Bold,
-              color = when {
-                perSoal.skor >= 80 -> Color(0xFF4CAF50)
-                perSoal.skor >= 60 -> Color(0xFFFFC107)
-                else -> Color(0xFFE91E63)
+              color = if (isCorrect) {
+                Color(0xFF4CAF50)
+              } else {
+                Color(0xFFE91E63)
               }
             )
           }
@@ -103,36 +116,46 @@ fun ResultItemCard(
           Spacer(modifier = Modifier.width(12.dp))
 
           Box(
-            modifier = Modifier.width(200.dp)
+            modifier = Modifier.weight(4f)
           ) {
-            Text(
-              modifier = Modifier.basicMarquee(),
-              text = "Soal ${perSoal.soal}",
-              style = MaterialTheme.typography.titleMedium,
-              fontWeight = FontWeight.Bold,
-              color = MaterialTheme.colorScheme.onSurface
-            )
+            Column {
+              Text(
+                text = "Soal",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+              )
+              Text(
+                text = perSoal.soal,
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = if (expanded) Int.MAX_VALUE else 2,
+                overflow = TextOverflow.Ellipsis
+              )
+            }
           }
         }
 
-        // Score badge
-        val sample = 100
+        Spacer(modifier = Modifier.width(12.dp))
+
+        // Score badge - menampilkan bobot yang didapat
         Box(
           modifier = Modifier
-            .size(42.dp)
-            .clip(CircleShape)
+            .weight(1f)
+            .clip(RoundedCornerShape(8.dp))
             .background(
-              when {
-                perSoal.skor >= 80 -> Color(0xFF4CAF50)
-                perSoal.skor >= 60 -> Color(0xFFFFC107)
-                else -> Color(0xFFE91E63)
+              if (isCorrect) {
+                Color(0xFF4CAF50)
+              } else {
+                Color(0xFFE91E63)
               }
-            ),
+            )
+            .padding(horizontal = 12.dp, vertical = 6.dp),
           contentAlignment = Alignment.Center
         ) {
           Text(
-            text = "${perSoal.skor}",
-            style = MaterialTheme.typography.titleMedium,
+            text = "${perSoal.skor} poin",
+            style = MaterialTheme.typography.labelLarge,
             fontWeight = FontWeight.Bold,
             color = Color.White
           )
@@ -147,28 +170,40 @@ fun ResultItemCard(
           .fillMaxWidth()
           .clip(RoundedCornerShape(8.dp))
           .background(
-            when {
-              perSoal.penilaian == "Benar" -> Color(0xFF4CAF50).copy(alpha = 0.1f)
-              else -> Color(0xFFE91E63).copy(alpha = 0.1f)
+            if (isCorrect) {
+              Color(0xFF4CAF50).copy(alpha = 0.1f)
+            } else {
+              Color(0xFFE91E63).copy(alpha = 0.1f)
             }
           )
           .padding(vertical = 8.dp, horizontal = 12.dp),
         verticalAlignment = Alignment.CenterVertically
       ) {
         Icon(
-          imageVector = if (perSoal.penilaian == "Benar") Icons.Default.Check else Icons.Default.Close,
+          imageVector = if (isCorrect) Icons.Default.Check else Icons.Default.Close,
           contentDescription = null,
-          tint = if (perSoal.penilaian == "Benar") Color(0xFF4CAF50) else Color(0xFFE91E63)
+          tint = if (isCorrect) Color(0xFF4CAF50) else Color(0xFFE91E63)
         )
 
         Spacer(modifier = Modifier.width(8.dp))
 
         Text(
-          text = if (perSoal.penilaian == "Benar") "Jawaban Benar" else "Jawaban Perlu Diperbaiki",
+          text = if (isCorrect) "Jawaban Benar" else "Jawaban Perlu Diperbaiki",
           style = MaterialTheme.typography.bodyMedium,
           fontWeight = FontWeight.Medium,
-          color = if (perSoal.penilaian == "Benar") Color(0xFF4CAF50) else Color(0xFFE91E63)
+          color = if (isCorrect) Color(0xFF4CAF50) else Color(0xFFE91E63)
         )
+
+        Spacer(modifier = Modifier.weight(1f))
+
+        // Menampilkan info bobot maksimal
+        if (maxBobot > 0) {
+          Text(
+            text = "dari $maxBobot poin",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+          )
+        }
       }
 
       // Expanded content with animation
@@ -180,7 +215,7 @@ fun ResultItemCard(
         Column(
           modifier = Modifier.padding(top = 16.dp)
         ) {
-          Divider()
+          HorizontalDivider()
 
           Spacer(modifier = Modifier.height(16.dp))
 
@@ -197,7 +232,7 @@ fun ResultItemCard(
             verticalAlignment = Alignment.Top
           ) {
             Icon(
-              imageVector = Icons.AutoMirrored.Default.Comment,
+              imageVector = AutoMirrored.Default.Comment,
               contentDescription = null,
               tint = MaterialTheme.colorScheme.primary,
               modifier = Modifier.padding(top = 2.dp)
@@ -219,7 +254,7 @@ fun ResultItemCard(
             horizontalArrangement = Arrangement.Center
           ) {
             Button(
-              onClick = { /* Tindakan untuk melihat detail jawaban */ },
+              onClick = { showDetailDialog = true },
               colors = ButtonDefaults.buttonColors(
                 containerColor = MaterialTheme.colorScheme.primary
               )
@@ -251,4 +286,30 @@ fun ResultItemCard(
       }
     }
   }
+
+  if (showDetailDialog) {
+    DetailAnswerDialog(
+      perSoal = perSoal,
+      nomorSoal = nomorSoal,
+      kunciJawaban = kunciJawaban,
+      tipeEvaluasi = tipeEvaluasi,
+      onDismiss = { showDetailDialog = false }
+    )
+  }
+}
+
+@Preview
+@Composable
+fun PreviewResultItemCard(modifier: Modifier = Modifier) {
+  ResultItemCard(
+    perSoal = PerSoal(
+      penilaian = "Bagus",
+      soal = "apa hayo nama kebun binatang yang ada di Jakarta",
+      jawaban = "bagus",
+      skor = 20,
+      alasan = "jawaban benar"
+    ),
+    nomorSoal = 1,
+    maxBobot = 1
+  )
 }

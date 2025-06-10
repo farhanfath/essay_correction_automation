@@ -227,7 +227,13 @@ fun EnhancedResultScreen(
 
             // Tab content
             when (selectedTabIndex) {
-              0 -> DetailEvaluasiTab(currentStudent.hasilKoreksi)
+              0 -> {
+                DetailEvaluasiTab(
+                  currentStudent.hasilKoreksi,
+                  hasil.listAnswerKey,
+                  hasil.evaluationType
+                )
+              }
               1 -> AnalisisJawabanTab(currentStudent.hasilKoreksi)
               2 -> if (hasil.resultData.size > 1) {
                 AllSummaryTab(hasil.resultData)
