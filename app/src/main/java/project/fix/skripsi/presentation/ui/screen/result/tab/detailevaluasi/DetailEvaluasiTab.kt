@@ -18,11 +18,14 @@ import project.fix.skripsi.presentation.ui.screen.result.tab.detailevaluasi.comp
 
 @Composable
 fun DetailEvaluasiTab(
+  modifier: Modifier = Modifier,
   hasilKoreksi: List<PerSoal>,
   bobotNilai: List<AnswerKeyItem>,
   tipeEvaluasi: CorrectionType
 ) {
-  Column(modifier = Modifier.fillMaxWidth()) {
+  Column(
+    modifier = modifier.fillMaxWidth()
+  ) {
     hasilKoreksi.forEachIndexed { index, perSoal ->
       key(perSoal.soal) {
         AnimatedVisibility(

@@ -58,6 +58,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import project.fix.skripsi.domain.model.CorrectionType
+import project.fix.skripsi.presentation.ui.components.CustomTopHeader
 import project.fix.skripsi.presentation.ui.screen.home.components.dialog.AnswerKeyDialog
 import project.fix.skripsi.presentation.ui.screen.home.components.dialog.CorrectionTypeDialog
 import project.fix.skripsi.presentation.ui.screen.home.components.dialog.EssayInfoSummary
@@ -138,29 +139,33 @@ fun HomeScreen(
 
     Scaffold(
         topBar = {
-            Column {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 16.dp)
+            CustomTopHeader {
+                Column(
+                    modifier = Modifier.padding(vertical = 16.dp)
                 ) {
-                    Icon(
-                        imageVector = Icons.Outlined.DocumentScanner,
-                        contentDescription = "Essay Icon",
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(32.dp)
-                    )
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Text(
-                        text = "Evaluasi Essay Otomatis",
-                        style = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 16.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.DocumentScanner,
+                            contentDescription = "Essay Icon",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(32.dp)
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text(
+                            text = "Evaluasi Essay Otomatis",
+                            style = MaterialTheme.typography.headlineMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                    }
+                    HorizontalDivider(modifier = Modifier.padding(10.dp))
                 }
-                HorizontalDivider(modifier = Modifier.padding(10.dp))
             }
         },
         bottomBar = {

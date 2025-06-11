@@ -1,10 +1,5 @@
 package project.fix.skripsi.presentation.ui.screen.result.components
 
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
-import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,17 +10,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Assignment
 import androidx.compose.material.icons.automirrored.filled.TrendingUp
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.filled.ThumbUp
-import androidx.compose.material.icons.filled.ThumbsUpDown
-import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -33,30 +21,24 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import project.fix.skripsi.domain.model.HasilKoreksi
 import project.fix.skripsi.domain.model.SiswaData
-import project.fix.skripsi.presentation.ui.screen.result.StatItem
 import kotlin.math.roundToInt
 
 @Composable
 fun ResultHeader(
+  modifier: Modifier = Modifier,
   siswaData: SiswaData,
   scoreProgress: Float,
   showStudentName: Boolean = false
 ) {
   Card(
-    modifier = Modifier.fillMaxWidth(),
+    modifier = modifier.fillMaxWidth(),
     colors = CardDefaults.cardColors(
       containerColor = MaterialTheme.colorScheme.primaryContainer
     )
@@ -111,46 +93,6 @@ fun ResultHeader(
 
       Spacer(modifier = Modifier.height(16.dp))
 
-      // Grade dan deskripsi
-      val grade = when {
-        siswaData.skorAkhir >= 90 -> "A" to "Excellent"
-        siswaData.skorAkhir >= 80 -> "B" to "Good"
-        siswaData.skorAkhir >= 70 -> "C" to "Fair"
-        siswaData.skorAkhir >= 60 -> "D" to "Poor"
-        else -> "F" to "Fail"
-      }
-
-      Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-      ) {
-        Card(
-          colors = CardDefaults.cardColors(
-            containerColor = when {
-              siswaData.skorAkhir >= 80 -> Color(0xFF4CAF50)
-              siswaData.skorAkhir >= 60 -> Color(0xFFFF9800)
-              else -> Color(0xFFF44336)
-            }
-          )
-        ) {
-          Text(
-            text = grade.first,
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
-            color = Color.White
-          )
-        }
-
-        Text(
-          text = grade.second,
-          style = MaterialTheme.typography.titleMedium,
-          color = MaterialTheme.colorScheme.onPrimaryContainer
-        )
-      }
-
-      Spacer(modifier = Modifier.height(8.dp))
-
       // Statistics
       Row(
         modifier = Modifier.fillMaxWidth(),
@@ -173,5 +115,35 @@ fun ResultHeader(
         )
       }
     }
+  }
+}
+
+@Composable
+fun StatItem(
+  label: String,
+  value: String,
+  icon: ImageVector
+) {
+  Column(
+    horizontalAlignment = Alignment.CenterHorizontally
+  ) {
+    Icon(
+      imageVector = icon,
+      contentDescription = null,
+      tint = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f),
+      modifier = Modifier.size(20.dp)
+    )
+    Spacer(modifier = Modifier.height(4.dp))
+    Text(
+      text = value,
+      style = MaterialTheme.typography.titleMedium,
+      fontWeight = FontWeight.Bold,
+      color = MaterialTheme.colorScheme.onPrimaryContainer
+    )
+    Text(
+      text = label,
+      style = MaterialTheme.typography.bodySmall,
+      color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+    )
   }
 }

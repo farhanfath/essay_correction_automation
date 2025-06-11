@@ -28,12 +28,13 @@ import kotlin.math.roundToInt
 
 @Composable
 fun StudentSelector(
+  modifier: Modifier = Modifier,
   students: List<SiswaData>,
   selectedIndex: Int,
   onStudentSelected: (Int) -> Unit
 ) {
   Card(
-    modifier = Modifier.fillMaxWidth(),
+    modifier = modifier.fillMaxWidth(),
     colors = CardDefaults.cardColors(
       containerColor = MaterialTheme.colorScheme.secondaryContainer
     )
