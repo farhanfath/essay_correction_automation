@@ -1,4 +1,4 @@
-package project.fix.skripsi.domain.model
+package project.fix.skripsi.domain.model.constants
 
 enum class CorrectionType(
     val badge: String,

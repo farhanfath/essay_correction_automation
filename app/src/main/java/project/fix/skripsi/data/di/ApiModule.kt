@@ -32,9 +32,9 @@ object ApiModule {
     ): OkHttpClient {
         return OkHttpClient.Builder()
             .addInterceptor(loggingInterceptor)
-            .connectTimeout(300, TimeUnit.SECONDS)
-            .readTimeout(300, TimeUnit.SECONDS)
-            .writeTimeout(300, TimeUnit.SECONDS)
+            .connectTimeout(900, TimeUnit.SECONDS)
+            .readTimeout(900, TimeUnit.SECONDS)
+            .writeTimeout(900, TimeUnit.SECONDS)
             .build()
     }
 

@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import project.fix.skripsi.domain.model.AnswerKeyItem
-import project.fix.skripsi.domain.model.CorrectionType
+import project.fix.skripsi.domain.model.constants.CorrectionType
 import project.fix.skripsi.domain.usecase.EvaluateEssayUseCase
 import project.fix.skripsi.presentation.state.EssayData
 import project.fix.skripsi.presentation.utils.common.base.state.EssayState

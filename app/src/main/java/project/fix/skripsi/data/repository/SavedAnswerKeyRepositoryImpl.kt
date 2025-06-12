@@ -1,8 +1,8 @@
 package project.fix.skripsi.data.repository
 
-import project.fix.skripsi.data.local.answerkey.datasource.SavedAnswerKeyDataSource
-import project.fix.skripsi.data.local.answerkey.model.SavedAnswerKeyEntity
-import project.fix.skripsi.data.local.answerkey.model.toEntity
+import project.fix.skripsi.data.local.datasource.SavedAnswerKeyDataSource
+import project.fix.skripsi.data.local.model.SavedAnswerKeyEntity
+import project.fix.skripsi.data.local.model.toEntity
 import project.fix.skripsi.domain.model.SavedAnswerKey
 import project.fix.skripsi.domain.repository.SavedAnswerKeyRepository
 import javax.inject.Inject

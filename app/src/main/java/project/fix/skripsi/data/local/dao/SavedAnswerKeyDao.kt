@@ -1,11 +1,11 @@
-package project.fix.skripsi.data.local.answerkey.dao
+package project.fix.skripsi.data.local.dao
 
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
-import project.fix.skripsi.data.local.answerkey.model.SavedAnswerKeyEntity
+import project.fix.skripsi.data.local.model.SavedAnswerKeyEntity
 
 @Dao
 interface SavedAnswerKeyDao {

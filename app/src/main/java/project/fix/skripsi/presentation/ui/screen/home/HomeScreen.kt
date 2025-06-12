@@ -44,7 +44,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -57,7 +56,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import project.fix.skripsi.domain.model.CorrectionType
+import project.fix.skripsi.domain.model.constants.CorrectionType
 import project.fix.skripsi.presentation.ui.components.CustomTopHeader
 import project.fix.skripsi.presentation.ui.screen.home.components.dialog.AnswerKeyDialog
 import project.fix.skripsi.presentation.ui.screen.home.components.dialog.CorrectionTypeDialog
@@ -140,9 +139,7 @@ fun HomeScreen(
     Scaffold(
         topBar = {
             CustomTopHeader {
-                Column(
-                    modifier = Modifier.padding(vertical = 16.dp)
-                ) {
+                Column {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Center,

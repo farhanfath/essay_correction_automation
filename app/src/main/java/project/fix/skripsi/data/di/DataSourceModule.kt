@@ -4,9 +4,12 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import project.fix.skripsi.data.local.answerkey.dao.SavedAnswerKeyDao
-import project.fix.skripsi.data.local.answerkey.datasource.SavedAnswerKeyDataSource
-import project.fix.skripsi.data.local.answerkey.datasource.SavedAnswerKeyDataSourceImpl
+import project.fix.skripsi.data.local.dao.SavedScoreHistoryDao
+import project.fix.skripsi.data.local.dao.SavedAnswerKeyDao
+import project.fix.skripsi.data.local.datasource.SavedScoreHistoryDataSource
+import project.fix.skripsi.data.local.datasource.SavedScoreHistoryDataSourceImpl
+import project.fix.skripsi.data.local.datasource.SavedAnswerKeyDataSource
+import project.fix.skripsi.data.local.datasource.SavedAnswerKeyDataSourceImpl
 import project.fix.skripsi.data.remote.n8n.N8nApiService
 import project.fix.skripsi.data.remote.n8n.datasource.N8nDataSource
 import project.fix.skripsi.data.remote.n8n.datasource.N8nDataSourceImpl
@@ -22,5 +25,12 @@ object DataSourceModule {
   @Provides
   fun provideSavedAnswerKeyDataSource(savedAnswerKeyDao: SavedAnswerKeyDao): SavedAnswerKeyDataSource {
     return SavedAnswerKeyDataSourceImpl(savedAnswerKeyDao)
+  }
+
+  @Provides
+  fun provideSavedScoreHistoryDataSource(
+    savedScoreHistoryDao: SavedScoreHistoryDao
+  ): SavedScoreHistoryDataSource {
+    return SavedScoreHistoryDataSourceImpl(savedScoreHistoryDao)
   }
 }

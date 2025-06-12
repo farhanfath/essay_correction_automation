@@ -1,7 +1,7 @@
-package project.fix.skripsi.data.local.answerkey.datasource
+package project.fix.skripsi.data.local.datasource
 
-import project.fix.skripsi.data.local.answerkey.dao.SavedAnswerKeyDao
-import project.fix.skripsi.data.local.answerkey.model.SavedAnswerKeyEntity
+import project.fix.skripsi.data.local.dao.SavedAnswerKeyDao
+import project.fix.skripsi.data.local.model.SavedAnswerKeyEntity
 import javax.inject.Inject
 
 class SavedAnswerKeyDataSourceImpl @Inject constructor(

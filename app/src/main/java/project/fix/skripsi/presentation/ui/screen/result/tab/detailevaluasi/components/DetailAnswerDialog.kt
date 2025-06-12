@@ -28,9 +28,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import project.fix.skripsi.domain.model.CorrectionType
-import project.fix.skripsi.domain.model.CorrectionType.AI
-import project.fix.skripsi.domain.model.CorrectionType.ANSWER_KEY
+import project.fix.skripsi.domain.model.constants.CorrectionType
+import project.fix.skripsi.domain.model.constants.CorrectionType.AI
+import project.fix.skripsi.domain.model.constants.CorrectionType.ANSWER_KEY
 import project.fix.skripsi.domain.model.PerSoal
 
 @Composable

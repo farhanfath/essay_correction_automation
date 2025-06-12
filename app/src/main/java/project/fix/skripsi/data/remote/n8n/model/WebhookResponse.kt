@@ -2,7 +2,7 @@ package project.fix.skripsi.data.remote.n8n.model
 
 import com.google.gson.annotations.SerializedName
 import project.fix.skripsi.domain.model.AnswerKeyItem
-import project.fix.skripsi.domain.model.CorrectionType
+import project.fix.skripsi.domain.model.constants.CorrectionType
 import project.fix.skripsi.domain.model.HasilKoreksi
 import project.fix.skripsi.domain.model.PerSoal
 import project.fix.skripsi.domain.model.SiswaData

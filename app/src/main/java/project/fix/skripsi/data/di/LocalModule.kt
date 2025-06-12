@@ -8,7 +8,8 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import project.fix.skripsi.data.local.AppDatabase
-import project.fix.skripsi.data.local.answerkey.dao.SavedAnswerKeyDao
+import project.fix.skripsi.data.local.dao.SavedScoreHistoryDao
+import project.fix.skripsi.data.local.dao.SavedAnswerKeyDao
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -18,12 +19,17 @@ object LocalModule {
     return Room.databaseBuilder(
       context,
       AppDatabase::class.java,
-      "saved_answer_key_database"
+      "local_database"
     ).build()
   }
 
   @Provides
   fun provideSavedAnswerKeyDao(database: AppDatabase): SavedAnswerKeyDao {
     return database.savedAnswerKeyDao()
+  }
+
+  @Provides
+  fun provideSavedScoreHistoryDao(database: AppDatabase): SavedScoreHistoryDao {
+    return database.savedScoreHistoryDao()
   }
 }

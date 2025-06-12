@@ -12,7 +12,7 @@ import androidx.compose.runtime.key
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import project.fix.skripsi.domain.model.AnswerKeyItem
-import project.fix.skripsi.domain.model.CorrectionType
+import project.fix.skripsi.domain.model.constants.CorrectionType
 import project.fix.skripsi.domain.model.PerSoal
 import project.fix.skripsi.presentation.ui.screen.result.tab.detailevaluasi.components.ResultItemCard
 

@@ -35,7 +35,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import project.fix.skripsi.domain.model.AnswerKeyItem
-import project.fix.skripsi.domain.model.CorrectionType
+import project.fix.skripsi.domain.model.constants.CorrectionType
 
 @Composable
 fun EssayInfoSummary(
