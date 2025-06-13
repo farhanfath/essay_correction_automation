@@ -19,12 +19,11 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
@@ -38,8 +37,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.outlined.TableView
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -65,19 +62,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
-import project.fix.skripsi.domain.model.SiswaData
 import project.fix.skripsi.presentation.ui.components.CustomDetailTopBar
 import project.fix.skripsi.presentation.ui.components.CustomTopHeader
 import project.fix.skripsi.presentation.ui.screen.result.components.BottomSheetTableScore
 import project.fix.skripsi.presentation.ui.screen.result.components.ErrorView
+import project.fix.skripsi.presentation.ui.screen.result.components.FloatingSaveButton
 import project.fix.skripsi.presentation.ui.screen.result.components.LoadingEvaluationAnimation
 import project.fix.skripsi.presentation.ui.screen.result.components.ResultHeader
+import project.fix.skripsi.presentation.ui.screen.result.components.SaveDataButton
 import project.fix.skripsi.presentation.ui.screen.result.components.StudentSelector
 import project.fix.skripsi.presentation.ui.screen.result.tab.allsummary.AllSummaryTab
 import project.fix.skripsi.presentation.ui.screen.result.tab.analisisjawaban.AnalisisJawabanTab
@@ -85,15 +80,16 @@ import project.fix.skripsi.presentation.ui.screen.result.tab.detailevaluasi.Deta
 import project.fix.skripsi.presentation.utils.common.base.state.StateHandler
 import project.fix.skripsi.presentation.utils.common.base.state.UiState
 import project.fix.skripsi.presentation.viewmodel.EssayViewModel
-import kotlin.math.roundToInt
+import project.fix.skripsi.presentation.viewmodel.SavedScoreHistoryViewModel
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun EnhancedResultScreen(
+fun ResultScreen(
   onBackClick: () -> Unit,
-  viewModel: EssayViewModel
+  essayViewModel: EssayViewModel,
+  savedScoreHistoryViewModel: SavedScoreHistoryViewModel,
 ) {
-  val resultState by viewModel.result.collectAsState()
+  val resultState by essayViewModel.result.collectAsState()
 
   var showContent by remember { mutableStateOf(false) }
   var selectedTabIndex by remember { mutableIntStateOf(0) }
@@ -203,17 +199,46 @@ fun EnhancedResultScreen(
       }
     },
     floatingActionButton = {
-      if (resultState is UiState.Success && (resultState as UiState.Success).data.resultData.size > 1) {
-        AnimatedFloatingActionButton(
-          onClick = { showTableBottomSheet = true },
-          isVisible = isFabVisible,
-          scale = fabScale,
-          translationY = fabTranslationY,
-          contentAlpha = contentAlpha,
-          onToggleVisibility = {
-            isFabVisible = !isFabVisible
+      if (resultState is UiState.Success) {
+        val hasil = (resultState as UiState.Success).data
+
+        // Jika multi-student, tampilkan kedua FAB
+        if (hasil.resultData.size > 1) {
+          Column(
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            horizontalAlignment = Alignment.End
+          ) {
+            // Save button
+            FloatingSaveButton(
+              onSaveClick = { title,  ->
+                savedScoreHistoryViewModel.addSavedScoreHistory(title, listOf(hasil))
+              },
+              isVisible = isFabVisible,
+              modifier = Modifier.padding(start = 16.dp)
+            )
+
+            // Table button
+            AnimatedFloatingActionButton(
+              onClick = { showTableBottomSheet = true },
+              isVisible = isFabVisible,
+              scale = fabScale,
+              translationY = fabTranslationY,
+              contentAlpha = contentAlpha,
+              onToggleVisibility = {
+                isFabVisible = !isFabVisible
+              }
+            )
           }
-        )
+        } else {
+          // Jika single student, hanya tampilkan save button
+          FloatingSaveButton(
+            onSaveClick = { title ->
+              savedScoreHistoryViewModel.addSavedScoreHistory(title, listOf(hasil))
+            },
+            isVisible = isFabVisible,
+            modifier = Modifier.padding(start = 16.dp)
+          )
+        }
       }
     }
   ) { innerPadding ->
@@ -261,6 +286,19 @@ fun EnhancedResultScreen(
               showStudentName = hasil.resultData.size > 1
             )
             Spacer(modifier = Modifier.height(24.dp))
+          }
+
+          item {
+            SaveDataButton(
+              onSaveClick = { title ->
+                if (resultState is UiState.Success) {
+                  val dataHasil = (resultState as UiState.Success).data
+                  savedScoreHistoryViewModel.addSavedScoreHistory(title, listOf(dataHasil))
+                }
+              },
+              modifier = Modifier.padding(horizontal = 16.dp)
+            )
+            Spacer(modifier = Modifier.height(32.dp))
           }
 
           stickyHeader {

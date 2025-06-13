@@ -12,6 +12,7 @@ import project.fix.skripsi.presentation.ui.navigation.AppNavHost
 import project.fix.skripsi.presentation.ui.theme.SkripsiappTheme
 import project.fix.skripsi.presentation.viewmodel.EssayViewModel
 import project.fix.skripsi.presentation.viewmodel.SavedAnswerKeyViewModel
+import project.fix.skripsi.presentation.viewmodel.SavedScoreHistoryViewModel
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -21,13 +22,15 @@ class MainActivity : ComponentActivity() {
         setContent {
             val essayViewModel: EssayViewModel = hiltViewModel()
             val savedAnswerKeyViewModel: SavedAnswerKeyViewModel = hiltViewModel()
+            val savedScoreHistoryViewModel: SavedScoreHistoryViewModel = hiltViewModel()
             val navController = rememberNavController()
 
             EssayApp {
                 AppNavHost(
                     navController = navController,
                     essayViewModel = essayViewModel,
-                    savedAnswerKeyViewModel = savedAnswerKeyViewModel
+                    savedAnswerKeyViewModel = savedAnswerKeyViewModel,
+                    savedScoreHistoryViewModel = savedScoreHistoryViewModel
                 )
             }
         }

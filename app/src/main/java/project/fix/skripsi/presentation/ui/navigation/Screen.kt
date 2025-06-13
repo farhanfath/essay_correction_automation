@@ -10,4 +10,12 @@ sealed class Screen(val route: String) {
 
     @Serializable
     data object Result: Screen(route = "Result")
+
+    @Serializable
+    data object History: Screen(route = "History")
+
+    @Serializable
+    data class DetailHistory(
+        val id: Long
+    ): Screen(route = "Detail_History")
 }

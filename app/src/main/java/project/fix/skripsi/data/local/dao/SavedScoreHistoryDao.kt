@@ -10,7 +10,7 @@ import project.fix.skripsi.data.local.model.SavedScoreHistoryEntity
 @Dao
 interface SavedScoreHistoryDao {
   @Query("SELECT * FROM saved_score_history ORDER BY createdAt DESC")
-  fun getAllSavedScoreHistory(): List<SavedScoreHistoryEntity>
+  suspend fun getAllSavedScoreHistory(): List<SavedScoreHistoryEntity>
 
   @Query("SELECT * FROM saved_score_history WHERE id = :id")
   suspend fun getSavedScoreHistoryById(id: Long): SavedScoreHistoryEntity?

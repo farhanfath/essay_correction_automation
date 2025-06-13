@@ -41,24 +41,28 @@ class SavedScoreHistoryViewModel @Inject constructor(
     )
     viewModelScope.launch {
       savedScoreHistoryUseCase.insertSavedScoreHistory(savedData)
+      getAllSavedScoreHistory()
     }
   }
 
   fun updateSavedScoreHistory(savedScoreHistory: SavedScoreHistory) {
     viewModelScope.launch {
       savedScoreHistoryUseCase.updateSavedScoreHistory(savedScoreHistory)
+      getAllSavedScoreHistory()
     }
   }
 
   fun deleteSavedScoreHistory(savedScoreHistory: SavedScoreHistory) {
     viewModelScope.launch {
       savedScoreHistoryUseCase.deleteSavedScoreHistory(savedScoreHistory)
+      getAllSavedScoreHistory()
     }
   }
 
   fun deleteSavedScoreHistoryById(id: Long) {
     viewModelScope.launch {
       savedScoreHistoryUseCase.deleteSavedScoreHistoryById(id)
+      getAllSavedScoreHistory()
     }
   }
 
