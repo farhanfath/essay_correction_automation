@@ -89,7 +89,8 @@ fun ResultScreen(
   essayViewModel: EssayViewModel,
   savedScoreHistoryViewModel: SavedScoreHistoryViewModel,
 ) {
-  val resultState by essayViewModel.result.collectAsState()
+  val uiState by essayViewModel.uiState.collectAsState()
+  val resultState = uiState.resultState
 
   var showContent by remember { mutableStateOf(false) }
   var selectedTabIndex by remember { mutableIntStateOf(0) }
@@ -172,7 +173,7 @@ fun ResultScreen(
   // Reset animasi skor saat student berubah
   LaunchedEffect(key1 = resultState, selectedStudentIndex) {
     if (resultState is UiState.Success) {
-      val hasil = (resultState as UiState.Success).data
+      val hasil = resultState.data
       val currentStudent = hasil.resultData[selectedStudentIndex]
       scoreProgress.animateTo(
         targetValue = currentStudent.skorAkhir.toFloat() / 100f,
@@ -191,7 +192,7 @@ fun ResultScreen(
             onBackClick()
           },
           title = if (resultState is UiState.Success) {
-            val hasil = (resultState as UiState.Success).data
+            val hasil = resultState.data
             if (hasil.resultData.size == 1) "Hasil Evaluasi Essay"
             else "Hasil Evaluasi Essay (${hasil.resultData.size} Siswa)"
           } else "Hasil Evaluasi Essay"
@@ -200,7 +201,7 @@ fun ResultScreen(
     },
     floatingActionButton = {
       if (resultState is UiState.Success) {
-        val hasil = (resultState as UiState.Success).data
+        val hasil = resultState.data
 
         // Jika multi-student, tampilkan kedua FAB
         if (hasil.resultData.size > 1) {
@@ -210,7 +211,7 @@ fun ResultScreen(
           ) {
             // Save button
             FloatingSaveButton(
-              onSaveClick = { title,  ->
+              onSaveClick = { title  ->
                 savedScoreHistoryViewModel.addSavedScoreHistory(title, listOf(hasil))
               },
               isVisible = isFabVisible,
@@ -292,7 +293,7 @@ fun ResultScreen(
             SaveDataButton(
               onSaveClick = { title ->
                 if (resultState is UiState.Success) {
-                  val dataHasil = (resultState as UiState.Success).data
+                  val dataHasil = resultState.data
                   savedScoreHistoryViewModel.addSavedScoreHistory(title, listOf(dataHasil))
                 }
               },
