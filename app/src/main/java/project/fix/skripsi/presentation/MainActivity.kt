@@ -5,14 +5,10 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.rememberNavController
 import dagger.hilt.android.AndroidEntryPoint
 import project.fix.skripsi.presentation.ui.navigation.AppNavHost
 import project.fix.skripsi.presentation.ui.theme.SkripsiappTheme
-import project.fix.skripsi.presentation.viewmodel.EssayViewModel
-import project.fix.skripsi.presentation.viewmodel.SavedAnswerKeyViewModel
-import project.fix.skripsi.presentation.viewmodel.SavedScoreHistoryViewModel
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -20,18 +16,10 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            val essayViewModel: EssayViewModel = hiltViewModel()
-            val savedAnswerKeyViewModel: SavedAnswerKeyViewModel = hiltViewModel()
-            val savedScoreHistoryViewModel: SavedScoreHistoryViewModel = hiltViewModel()
             val navController = rememberNavController()
 
             EssayApp {
-                AppNavHost(
-                    navController = navController,
-                    essayViewModel = essayViewModel,
-                    savedAnswerKeyViewModel = savedAnswerKeyViewModel,
-                    savedScoreHistoryViewModel = savedScoreHistoryViewModel
-                )
+                AppNavHost(navController = navController)
             }
         }
     }
@@ -39,9 +27,7 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun EssayApp(content: @Composable () -> Unit) {
-    SkripsiappTheme(
-        dynamicColor = false
-    ) {
+    SkripsiappTheme {
         content()
     }
 }

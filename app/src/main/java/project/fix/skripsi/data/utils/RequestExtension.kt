@@ -15,7 +15,7 @@ fun File.toImagePart(partName: String): MultipartBody.Part {
 
 fun createJsonPart(partName: String, content: Any): MultipartBody.Part {
   val json = Gson().toJson(content)
-  val requestBody = json.toRequestBody("text/plain".toMediaTypeOrNull())
+  val requestBody = json.toRequestBody("json/plain".toMediaTypeOrNull())
   return MultipartBody.Part.create(
     Headers.headersOf("Content-Disposition", "form-data; name=\"$partName\""),
     requestBody

@@ -1,12 +1,12 @@
 package project.fix.skripsi.presentation.ui.screen.result
 
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.spring
@@ -19,9 +19,7 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
@@ -30,7 +28,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -52,24 +49,23 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import project.fix.skripsi.presentation.ui.components.CustomDetailTopBar
 import project.fix.skripsi.presentation.ui.components.CustomTopHeader
 import project.fix.skripsi.presentation.ui.screen.result.components.BottomSheetTableScore
+import project.fix.skripsi.presentation.ui.screen.result.components.EmptyResultView
 import project.fix.skripsi.presentation.ui.screen.result.components.ErrorView
-import project.fix.skripsi.presentation.ui.screen.result.components.FloatingSaveButton
 import project.fix.skripsi.presentation.ui.screen.result.components.LoadingEvaluationAnimation
 import project.fix.skripsi.presentation.ui.screen.result.components.ResultHeader
 import project.fix.skripsi.presentation.ui.screen.result.components.SaveDataButton
@@ -79,6 +75,7 @@ import project.fix.skripsi.presentation.ui.screen.result.tab.analisisjawaban.Ana
 import project.fix.skripsi.presentation.ui.screen.result.tab.detailevaluasi.DetailEvaluasiTab
 import project.fix.skripsi.presentation.utils.common.base.state.StateHandler
 import project.fix.skripsi.presentation.utils.common.base.state.UiState
+import project.fix.skripsi.presentation.utils.common.extension.ActionUtils
 import project.fix.skripsi.presentation.viewmodel.EssayViewModel
 import project.fix.skripsi.presentation.viewmodel.SavedScoreHistoryViewModel
 
@@ -89,43 +86,13 @@ fun ResultScreen(
   essayViewModel: EssayViewModel,
   savedScoreHistoryViewModel: SavedScoreHistoryViewModel,
 ) {
+  val context = LocalContext.current
   val resultState by essayViewModel.result.collectAsState()
 
   var showContent by remember { mutableStateOf(false) }
   var selectedTabIndex by remember { mutableIntStateOf(0) }
   var selectedStudentIndex by remember { mutableIntStateOf(0) }
   var showTableBottomSheet by remember { mutableStateOf(false) }
-
-  // FAB visibility states
-  var isFabVisible by remember { mutableStateOf(true) }
-  var isScrolling by remember { mutableStateOf(false) }
-  val listState = rememberLazyListState()
-
-  // Timer untuk auto-hide FAB
-  var lastScrollTime by remember { mutableLongStateOf(0L) }
-
-  // Animasi untuk entrance
-  val contentAlpha by animateFloatAsState(
-    targetValue = if (showContent) 1f else 0f,
-    animationSpec = tween(durationMillis = 500)
-  )
-
-  // Animasi untuk FAB
-  val fabScale by animateFloatAsState(
-    targetValue = if (isFabVisible) 1f else 0f,
-    animationSpec = spring(
-      dampingRatio = Spring.DampingRatioMediumBouncy,
-      stiffness = Spring.StiffnessLow
-    )
-  )
-
-  val fabTranslationY by animateFloatAsState(
-    targetValue = if (isFabVisible) 0f else 200f,
-    animationSpec = spring(
-      dampingRatio = Spring.DampingRatioNoBouncy,
-      stiffness = Spring.StiffnessMedium
-    )
-  )
 
   // Animasi untuk skor
   val scoreProgress = remember { Animatable(0f) }
@@ -135,51 +102,17 @@ fun ResultScreen(
     showContent = true
   }
 
-  // Monitor scroll state untuk auto-hide FAB
-  LaunchedEffect(listState) {
-    var previousScrollOffset = 0
-    snapshotFlow { listState.firstVisibleItemScrollOffset }
-      .collect { currentScrollOffset ->
-        val currentTime = System.currentTimeMillis()
-        lastScrollTime = currentTime
-
-        // Detect scroll direction
-        val isScrollingDown = currentScrollOffset > previousScrollOffset
-        val isScrollingUp = currentScrollOffset < previousScrollOffset
-
-        if (isScrollingDown && isFabVisible) {
-          isScrolling = true
-          isFabVisible = false
-        } else if (isScrollingUp && !isFabVisible) {
-          isScrolling = false
-          isFabVisible = true
-        }
-
-        previousScrollOffset = currentScrollOffset
-      }
-  }
-
-  // Auto-show FAB setelah scroll berhenti selama 3 detik
-  LaunchedEffect(lastScrollTime) {
-    delay(3000) // 3 detik setelah scroll terakhir
-    if (System.currentTimeMillis() - lastScrollTime >= 3000) {
-      if (!isFabVisible && !isScrolling) {
-        isFabVisible = true
-      }
-    }
-  }
-
   // Reset animasi skor saat student berubah
-  LaunchedEffect(key1 = resultState, selectedStudentIndex) {
-    if (resultState is UiState.Success) {
-      val hasil = (resultState as UiState.Success).data
-      val currentStudent = hasil.resultData[selectedStudentIndex]
-      scoreProgress.animateTo(
-        targetValue = currentStudent.skorAkhir.toFloat() / 100f,
-        animationSpec = tween(1500, easing = FastOutSlowInEasing)
-      )
-    }
-  }
+//  LaunchedEffect(key1 = resultState, selectedStudentIndex) {
+//    if (resultState is UiState.Success) {
+//      val hasil = (resultState as UiState.Success).data
+//      val currentStudent = hasil.resultData[selectedStudentIndex]
+//      scoreProgress.animateTo(
+//        targetValue = currentStudent.skorAkhir.toFloat() / 100f,
+//        animationSpec = tween(1500, easing = FastOutSlowInEasing)
+//      )
+//    }
+//  }
 
   Scaffold(
     topBar = {
@@ -197,49 +130,6 @@ fun ResultScreen(
           } else "Hasil Evaluasi Essay"
         )
       }
-    },
-    floatingActionButton = {
-      if (resultState is UiState.Success) {
-        val hasil = (resultState as UiState.Success).data
-
-        // Jika multi-student, tampilkan kedua FAB
-        if (hasil.resultData.size > 1) {
-          Column(
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            horizontalAlignment = Alignment.End
-          ) {
-            // Save button
-            FloatingSaveButton(
-              onSaveClick = { title,  ->
-                savedScoreHistoryViewModel.addSavedScoreHistory(title, listOf(hasil))
-              },
-              isVisible = isFabVisible,
-              modifier = Modifier.padding(start = 16.dp)
-            )
-
-            // Table button
-            AnimatedFloatingActionButton(
-              onClick = { showTableBottomSheet = true },
-              isVisible = isFabVisible,
-              scale = fabScale,
-              translationY = fabTranslationY,
-              contentAlpha = contentAlpha,
-              onToggleVisibility = {
-                isFabVisible = !isFabVisible
-              }
-            )
-          }
-        } else {
-          // Jika single student, hanya tampilkan save button
-          FloatingSaveButton(
-            onSaveClick = { title ->
-              savedScoreHistoryViewModel.addSavedScoreHistory(title, listOf(hasil))
-            },
-            isVisible = isFabVisible,
-            modifier = Modifier.padding(start = 16.dp)
-          )
-        }
-      }
     }
   ) { innerPadding ->
     StateHandler(
@@ -254,23 +144,69 @@ fun ResultScreen(
         }
       },
       onSuccess = { hasil ->
-        val currentStudent = hasil.resultData[selectedStudentIndex]
+        if (hasil.resultData.isEmpty()) {
+          Box(
+            modifier = Modifier
+              .padding(innerPadding)
+              .fillMaxSize()
+          ) {
+            EmptyResultView(
+              message = "Tidak ada data siswa yang berhasil diproses. Coba ambil foto ulang dengan kualitas yang lebih baik.",
+              onRetry = onBackClick,
+              modifier = Modifier.align(Alignment.Center)
+            )
+          }
+          return@StateHandler
+        }
+
+        if (selectedStudentIndex >= hasil.resultData.size) {
+          selectedStudentIndex = 0
+        }
+
+        val currentStudent = hasil.resultData.getOrNull(selectedStudentIndex)
+          ?: hasil.resultData.first()
+
+        if (currentStudent == null) {
+          Box(
+            modifier = Modifier
+              .padding(innerPadding)
+              .fillMaxSize()
+          ) {
+            EmptyResultView(
+              message = "Data siswa tidak valid. Silakan coba lagi.",
+              onRetry = { onBackClick() },
+              modifier = Modifier.align(Alignment.Center)
+            )
+          }
+          return@StateHandler
+        }
+
+        LaunchedEffect(key1 = selectedStudentIndex, key2 = hasil.resultData.size) {
+          try {
+            val studentData = hasil.resultData.getOrNull(selectedStudentIndex) ?: return@LaunchedEffect
+            scoreProgress.animateTo(
+              targetValue = (studentData.skorAkhir.toFloat() / 100f).coerceIn(0f, 1f),
+              animationSpec = tween(1500, easing = FastOutSlowInEasing)
+            )
+          } catch (e: Exception) {
+            Log.e("ResultScreen", "Error animating score: ${e.message}")
+          }
+        }
 
         LazyColumn(
-          state = listState, // Connect list state untuk scroll monitoring
           modifier = Modifier
             .padding(innerPadding)
             .fillMaxSize()
         ) {
-          // Multi-student selector (if more than one student)
           if (hasil.resultData.size > 1) {
             item {
               StudentSelector(
                 modifier = Modifier.padding(horizontal = 16.dp),
                 students = hasil.resultData,
-                selectedIndex = selectedStudentIndex,
-                onStudentSelected = {
-                  selectedStudentIndex = it
+                selectedIndex = selectedStudentIndex.coerceIn(0, hasil.resultData.size - 1),
+                onStudentSelected = { newIndex ->
+                  val safeIndex = newIndex.coerceIn(0, hasil.resultData.size - 1)
+                  selectedStudentIndex = safeIndex
                   selectedTabIndex = 0
                 }
               )
@@ -294,6 +230,7 @@ fun ResultScreen(
                 if (resultState is UiState.Success) {
                   val dataHasil = (resultState as UiState.Success).data
                   savedScoreHistoryViewModel.addSavedScoreHistory(title, listOf(dataHasil))
+                  ActionUtils.showToast(context, "Data Berhasil Disimpan")
                 }
               },
               modifier = Modifier.padding(horizontal = 16.dp)
@@ -365,25 +302,26 @@ fun ResultScreen(
           }
         }
 
-        if (showTableBottomSheet) {
+        if (showTableBottomSheet && hasil.resultData.isNotEmpty()) {
           BottomSheetTableScore(
             onDismiss = { showTableBottomSheet = false },
             dataTable = hasil
           )
         }
       },
-      onError = {
+      onError = { errorMessage ->
+        val (title, description, advice) = essayViewModel.getDetailedErrorMessage(Exception(errorMessage))
         Box(
           modifier = Modifier
             .padding(innerPadding)
             .fillMaxSize()
         ) {
           ErrorView(
-            errorMessage = it,
-            onRetry = {
-              onBackClick()
-            },
-            modifier = Modifier.align(Alignment.Center)
+            modifier = Modifier.align(Alignment.Center),
+            errorTitle = title,
+            errorMessage = description,
+            actionableAdvice = advice,
+            onRetry = onBackClick
           )
         }
       }
@@ -474,7 +412,6 @@ fun AnimatedFloatingActionButton(
   }
 }
 
-// Alternative version dengan mini FAB yang lebih subtle
 @Composable
 fun SubtleToggleButton(
   onToggleVisibility: () -> Unit,
@@ -518,7 +455,6 @@ fun SubtleToggleButton(
   }
 }
 
-// Enhanced version dengan pulse animation untuk menarik perhatian
 @Composable
 fun PulsingToggleButton(
   onToggleVisibility: () -> Unit,

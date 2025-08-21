@@ -1,6 +1,7 @@
 package project.fix.skripsi.presentation.ui.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -13,11 +14,12 @@ import project.fix.skripsi.presentation.viewmodel.SavedScoreHistoryViewModel
 
 @Composable
 fun AppNavHost(
-    navController: NavHostController,
-    essayViewModel: EssayViewModel,
-    savedAnswerKeyViewModel: SavedAnswerKeyViewModel,
-    savedScoreHistoryViewModel: SavedScoreHistoryViewModel
+    navController: NavHostController
 ) {
+    val essayViewModel: EssayViewModel = hiltViewModel()
+    val savedAnswerKeyViewModel: SavedAnswerKeyViewModel = hiltViewModel()
+    val savedScoreHistoryViewModel: SavedScoreHistoryViewModel = hiltViewModel()
+
     NavHost(
         navController = navController,
         startDestination = Screen.Home
