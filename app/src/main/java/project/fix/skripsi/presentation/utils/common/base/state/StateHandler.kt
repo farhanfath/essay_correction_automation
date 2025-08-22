@@ -17,3 +17,19 @@ fun <T> StateHandler(
     is UiState.Success -> onSuccess(state.data)
   }
 }
+
+@Composable
+fun <T> StateHandler(
+  state: UiState<T>,
+  onIdle: @Composable (() -> Unit)? = null,
+  onLoading: @Composable () -> Unit,
+  onError: @Composable (String, Throwable?) -> Unit,
+  onSuccess: @Composable (T) -> Unit
+) {
+  when (state) {
+    is UiState.Idle -> onIdle?.invoke()
+    is UiState.Loading -> onLoading()
+    is UiState.Error -> onError(state.message, state.throwable)
+    is UiState.Success -> onSuccess(state.data)
+  }
+}

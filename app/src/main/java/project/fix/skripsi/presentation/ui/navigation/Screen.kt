@@ -16,6 +16,6 @@ sealed class Screen(val route: String) {
 
     @Serializable
     data class DetailHistory(
-        val id: Long
+        val historyId: Long
     ): Screen(route = "Detail_History")
 }

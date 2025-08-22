@@ -37,7 +37,7 @@ fun ResultHeader(
   modifier: Modifier = Modifier,
   siswaData: SiswaData,
   scoreProgress: Float,
-  showStudentName: Boolean = false
+  showStudentName: Boolean = true
 ) {
   Card(
     modifier = modifier.fillMaxWidth(),

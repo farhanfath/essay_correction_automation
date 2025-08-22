@@ -5,7 +5,10 @@ import com.google.gson.annotations.SerializedName
 data class ApiErrorResponse(
     @SerializedName("status_code")
     val statusCode: Int? = null,
+
+    @SerializedName("error")
     val error: String? = null,
-    val status: String? = null,
-    val result: Any? = null
+
+    @SerializedName("status")
+    val status: String? = null
 )

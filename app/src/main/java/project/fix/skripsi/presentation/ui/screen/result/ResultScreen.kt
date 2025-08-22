@@ -1,75 +1,30 @@
 package project.fix.skripsi.presentation.ui.screen.result
 
 import android.util.Log
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ExpandLess
-import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material.icons.outlined.TableView
-import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SmallFloatingActionButton
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
-import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.scale
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
-import project.fix.skripsi.presentation.ui.components.CustomDetailTopBar
+import kotlinx.coroutines.flow.flowOf
+import project.fix.skripsi.domain.model.HasilKoreksi
+import project.fix.skripsi.domain.model.SavedScoreHistory
+import project.fix.skripsi.domain.model.SiswaData
 import project.fix.skripsi.presentation.ui.components.CustomTopHeader
-import project.fix.skripsi.presentation.ui.screen.result.components.BottomSheetTableScore
+import project.fix.skripsi.presentation.ui.components.CustomDetailTopBar
 import project.fix.skripsi.presentation.ui.screen.result.components.EmptyResultView
 import project.fix.skripsi.presentation.ui.screen.result.components.ErrorView
 import project.fix.skripsi.presentation.ui.screen.result.components.LoadingEvaluationAnimation
 import project.fix.skripsi.presentation.ui.screen.result.components.ResultHeader
 import project.fix.skripsi.presentation.ui.screen.result.components.SaveDataButton
 import project.fix.skripsi.presentation.ui.screen.result.components.StudentSelector
+import project.fix.skripsi.presentation.ui.screen.result.state.ResultScreenState
 import project.fix.skripsi.presentation.ui.screen.result.tab.allsummary.AllSummaryTab
 import project.fix.skripsi.presentation.ui.screen.result.tab.analisisjawaban.AnalisisJawabanTab
 import project.fix.skripsi.presentation.ui.screen.result.tab.detailevaluasi.DetailEvaluasiTab
@@ -79,40 +34,76 @@ import project.fix.skripsi.presentation.utils.common.extension.ActionUtils
 import project.fix.skripsi.presentation.viewmodel.EssayViewModel
 import project.fix.skripsi.presentation.viewmodel.SavedScoreHistoryViewModel
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ResultScreen(
   onBackClick: () -> Unit,
-  essayViewModel: EssayViewModel,
+  essayViewModel: EssayViewModel? = null,
   savedScoreHistoryViewModel: SavedScoreHistoryViewModel,
+  mode: ResultScreenState = ResultScreenState.FRESH_RESULT,
+  historyId: Long? = null
 ) {
   val context = LocalContext.current
-  val resultState by essayViewModel.result.collectAsState()
+
+  val resultState by (essayViewModel?.result ?: flowOf(UiState.Idle)).collectAsState(UiState.Idle)
+
+  val savedHistory by savedScoreHistoryViewModel.savedScoreHistory.collectAsState()
+  val savedHistoryList by savedScoreHistoryViewModel.savedScoreHistoryList.collectAsState()
+  val isLoading by savedScoreHistoryViewModel.isLoading.collectAsState()
+  val errorMessage by savedScoreHistoryViewModel.errorMessage.collectAsState()
 
   var showContent by remember { mutableStateOf(false) }
   var selectedTabIndex by remember { mutableIntStateOf(0) }
   var selectedStudentIndex by remember { mutableIntStateOf(0) }
-  var showTableBottomSheet by remember { mutableStateOf(false) }
+  var selectedEvaluationIndex by remember { mutableIntStateOf(0) }
 
   // Animasi untuk skor
   val scoreProgress = remember { Animatable(0f) }
 
-  LaunchedEffect(key1 = Unit) {
+  // Load data berdasarkan mode
+  LaunchedEffect(mode, historyId) {
+    when (mode) {
+      ResultScreenState.HISTORY_DETAIL -> {
+        if (historyId != null) {
+          savedScoreHistoryViewModel.getSavedScoreHistoryById(historyId)
+        }
+      }
+      ResultScreenState.FRESH_RESULT -> {}
+    }
     delay(300)
     showContent = true
   }
 
-  // Reset animasi skor saat student berubah
-//  LaunchedEffect(key1 = resultState, selectedStudentIndex) {
-//    if (resultState is UiState.Success) {
-//      val hasil = (resultState as UiState.Success).data
-//      val currentStudent = hasil.resultData[selectedStudentIndex]
-//      scoreProgress.animateTo(
-//        targetValue = currentStudent.skorAkhir.toFloat() / 100f,
-//        animationSpec = tween(1500, easing = FastOutSlowInEasing)
-//      )
-//    }
-//  }
+  val currentData: List<SiswaData>? = when (mode) {
+    ResultScreenState.FRESH_RESULT -> {
+      if (resultState is UiState.Success) {
+        val hasilKoreksi = (resultState as UiState.Success).data
+        hasilKoreksi.resultData
+      } else null
+    }
+    ResultScreenState.HISTORY_DETAIL -> {
+      savedHistory?.let { history ->
+        if (history.hasilKoreksi.isNotEmpty() && selectedEvaluationIndex < history.hasilKoreksi.size) {
+          history.hasilKoreksi[selectedEvaluationIndex].resultData
+        } else null
+      }
+    }
+  }
+
+  LaunchedEffect(selectedStudentIndex, currentData) {
+    currentData?.let { data ->
+      if (data.isNotEmpty() && selectedStudentIndex < data.size) {
+        try {
+          val studentData = data[selectedStudentIndex]
+          scoreProgress.animateTo(
+            targetValue = (studentData.skorAkhir.toFloat() / 100f).coerceIn(0f, 1f),
+            animationSpec = tween(1500, easing = FastOutSlowInEasing)
+          )
+        } catch (e: Exception) {
+          Log.e("ResultScreen", "Error animating score: ${e.message}")
+        }
+      }
+    }
+  }
 
   Scaffold(
     topBar = {
@@ -120,384 +111,407 @@ fun ResultScreen(
         statusBarColor = MaterialTheme.colorScheme.primaryContainer
       ) {
         CustomDetailTopBar(
-          onBackClick = {
-            onBackClick()
-          },
-          title = if (resultState is UiState.Success) {
-            val hasil = (resultState as UiState.Success).data
-            if (hasil.resultData.size == 1) "Hasil Evaluasi Essay"
-            else "Hasil Evaluasi Essay (${hasil.resultData.size} Siswa)"
-          } else "Hasil Evaluasi Essay"
+          onBackClick = onBackClick,
+          title = when (mode) {
+            ResultScreenState.FRESH_RESULT -> {
+              if (resultState is UiState.Success) {
+                val hasil = (resultState as UiState.Success).data
+                if (hasil.resultData.size == 1) "Hasil Evaluasi Essay"
+                else "Hasil Evaluasi Essay (${hasil.resultData.size} Siswa)"
+              } else "Hasil Evaluasi Essay"
+            }
+            ResultScreenState.HISTORY_DETAIL -> {
+              savedHistory?.title ?: "Detail Riwayat Penilaian"
+            }
+          }
         )
       }
     }
   ) { innerPadding ->
-    StateHandler(
-      state = resultState,
-      onLoading = {
+    when (mode) {
+      ResultScreenState.FRESH_RESULT -> {
+        HandleFreshResultState(
+          innerPadding = innerPadding,
+          resultState = resultState,
+          selectedTabIndex = selectedTabIndex,
+          selectedStudentIndex = selectedStudentIndex,
+          scoreProgress = scoreProgress,
+          savedHistoryList = savedHistoryList,
+          isLoading = isLoading,
+          onTabIndexChange = { selectedTabIndex = it },
+          onStudentIndexChange = { selectedStudentIndex = it },
+          onBackClick = onBackClick,
+          onSaveNew = { title ->
+            if (resultState is UiState.Success) {
+              val dataHasil = (resultState as UiState.Success).data
+              savedScoreHistoryViewModel.addSavedScoreHistory(title, listOf(dataHasil))
+              ActionUtils.showToast(context, "Data Berhasil Disimpan")
+            }
+          },
+          onUpdateExisting = { history, title ->
+            if (resultState is UiState.Success) {
+              val dataHasil = (resultState as UiState.Success).data
+              savedScoreHistoryViewModel.mergeWithExistingData(history, title, listOf(dataHasil))
+              ActionUtils.showToast(context, "Data Berhasil Ditambahkan")
+            }
+          }
+        )
+      }
+      ResultScreenState.HISTORY_DETAIL -> {
+        HandleHistoryDetailState(
+          innerPadding = innerPadding,
+          savedHistory = savedHistory,
+          isLoading = isLoading,
+          errorMessage = errorMessage,
+          selectedTabIndex = selectedTabIndex,
+          selectedStudentIndex = selectedStudentIndex,
+          selectedEvaluationIndex = selectedEvaluationIndex,
+          scoreProgress = scoreProgress,
+          onTabIndexChange = { selectedTabIndex = it },
+          onStudentIndexChange = { selectedStudentIndex = it },
+          onEvaluationIndexChange = { selectedEvaluationIndex = it },
+          onBackClick = onBackClick,
+          onClearError = { savedScoreHistoryViewModel.clearError() }
+        )
+      }
+    }
+  }
+}
+
+@Composable
+private fun HandleFreshResultState(
+  innerPadding: PaddingValues,
+  resultState: UiState<HasilKoreksi>,
+  selectedTabIndex: Int,
+  selectedStudentIndex: Int,
+  scoreProgress: Animatable<Float, AnimationVector1D>,
+  savedHistoryList: List<SavedScoreHistory>,
+  isLoading: Boolean,
+  onTabIndexChange: (Int) -> Unit,
+  onStudentIndexChange: (Int) -> Unit,
+  onBackClick: () -> Unit,
+  onSaveNew: (String) -> Unit,
+  onUpdateExisting: (SavedScoreHistory, String) -> Unit
+) {
+  StateHandler(
+    state = resultState,
+    onLoading = {
+      Box(
+        modifier = Modifier
+          .padding(innerPadding)
+          .fillMaxSize()
+      ) {
+        LoadingEvaluationAnimation(modifier = Modifier.align(Alignment.Center))
+      }
+    },
+    onSuccess = { hasil ->
+      if (hasil.resultData.isEmpty()) {
         Box(
           modifier = Modifier
             .padding(innerPadding)
             .fillMaxSize()
         ) {
-          LoadingEvaluationAnimation(modifier = Modifier.align(Alignment.Center))
+          EmptyResultView(
+            message = "Tidak ada data siswa yang berhasil diproses. Coba ambil foto ulang dengan kualitas yang lebih baik.",
+            onRetry = onBackClick,
+            modifier = Modifier.align(Alignment.Center)
+          )
         }
-      },
-      onSuccess = { hasil ->
-        if (hasil.resultData.isEmpty()) {
-          Box(
-            modifier = Modifier
-              .padding(innerPadding)
-              .fillMaxSize()
-          ) {
-            EmptyResultView(
-              message = "Tidak ada data siswa yang berhasil diproses. Coba ambil foto ulang dengan kualitas yang lebih baik.",
-              onRetry = onBackClick,
-              modifier = Modifier.align(Alignment.Center)
-            )
-          }
-          return@StateHandler
-        }
+        return@StateHandler
+      }
 
-        if (selectedStudentIndex >= hasil.resultData.size) {
-          selectedStudentIndex = 0
-        }
+      val currentStudentIndex = selectedStudentIndex.coerceIn(0, hasil.resultData.size - 1)
 
-        val currentStudent = hasil.resultData.getOrNull(selectedStudentIndex)
-          ?: hasil.resultData.first()
+      ResultContent(
+        hasilKoreksi = hasil,
+        innerPadding = innerPadding,
+        siswaDataList = hasil.resultData,
+        selectedTabIndex = selectedTabIndex,
+        selectedStudentIndex = currentStudentIndex,
+        scoreProgress = scoreProgress,
+        showSaveButton = true,
+        savedHistoryList = savedHistoryList,
+        isLoading = isLoading,
+        onTabIndexChange = onTabIndexChange,
+        onStudentIndexChange = onStudentIndexChange,
+        onSaveNew = onSaveNew,
+        onUpdateExisting = onUpdateExisting
+      )
+    },
+    onError = { error ->
+      Box(
+        modifier = Modifier
+          .padding(innerPadding)
+          .fillMaxSize()
+      ) {
+        ErrorView(
+          errorMessage = error,
+          onRetry = onBackClick,
+          modifier = Modifier.align(Alignment.Center)
+        )
+      }
+    }
+  )
+}
 
-        if (currentStudent == null) {
-          Box(
-            modifier = Modifier
-              .padding(innerPadding)
-              .fillMaxSize()
-          ) {
-            EmptyResultView(
-              message = "Data siswa tidak valid. Silakan coba lagi.",
-              onRetry = { onBackClick() },
-              modifier = Modifier.align(Alignment.Center)
-            )
-          }
-          return@StateHandler
-        }
-
-        LaunchedEffect(key1 = selectedStudentIndex, key2 = hasil.resultData.size) {
-          try {
-            val studentData = hasil.resultData.getOrNull(selectedStudentIndex) ?: return@LaunchedEffect
-            scoreProgress.animateTo(
-              targetValue = (studentData.skorAkhir.toFloat() / 100f).coerceIn(0f, 1f),
-              animationSpec = tween(1500, easing = FastOutSlowInEasing)
-            )
-          } catch (e: Exception) {
-            Log.e("ResultScreen", "Error animating score: ${e.message}")
-          }
-        }
-
-        LazyColumn(
+@Composable
+private fun HandleHistoryDetailState(
+  innerPadding: PaddingValues,
+  savedHistory: SavedScoreHistory?,
+  isLoading: Boolean,
+  errorMessage: String?,
+  selectedTabIndex: Int,
+  selectedStudentIndex: Int,
+  selectedEvaluationIndex: Int,
+  scoreProgress: Animatable<Float, AnimationVector1D>,
+  onTabIndexChange: (Int) -> Unit,
+  onStudentIndexChange: (Int) -> Unit,
+  onEvaluationIndexChange: (Int) -> Unit,
+  onBackClick: () -> Unit,
+  onClearError: () -> Unit
+) {
+  when {
+    isLoading -> {
+      Box(
+        modifier = Modifier
+          .padding(innerPadding)
+          .fillMaxSize()
+      ) {
+        LoadingEvaluationAnimation(modifier = Modifier.align(Alignment.Center))
+      }
+    }
+    errorMessage != null -> {
+      Box(
+        modifier = Modifier
+          .padding(innerPadding)
+          .fillMaxSize()
+      ) {
+        ErrorView(
+          errorMessage = errorMessage,
+          onRetry = {
+            onClearError()
+            onBackClick()
+          },
+          modifier = Modifier.align(Alignment.Center)
+        )
+      }
+    }
+    savedHistory != null -> {
+      if (savedHistory.hasilKoreksi.isEmpty()) {
+        Box(
           modifier = Modifier
             .padding(innerPadding)
             .fillMaxSize()
         ) {
-          if (hasil.resultData.size > 1) {
-            item {
-              StudentSelector(
-                modifier = Modifier.padding(horizontal = 16.dp),
-                students = hasil.resultData,
-                selectedIndex = selectedStudentIndex.coerceIn(0, hasil.resultData.size - 1),
-                onStudentSelected = { newIndex ->
-                  val safeIndex = newIndex.coerceIn(0, hasil.resultData.size - 1)
-                  selectedStudentIndex = safeIndex
-                  selectedTabIndex = 0
-                }
-              )
-              Spacer(modifier = Modifier.height(16.dp))
-            }
-          }
+          EmptyResultView(
+            message = "Tidak ada data hasil penilaian dalam riwayat ini.",
+            onRetry = onBackClick,
+            modifier = Modifier.align(Alignment.Center)
+          )
+        }
+      } else {
+        val currentEvaluationIndex = selectedEvaluationIndex.coerceIn(0, savedHistory.hasilKoreksi.size - 1)
+        val currentEvaluation = savedHistory.hasilKoreksi[currentEvaluationIndex]
+        val currentStudentIndex = selectedStudentIndex.coerceIn(0, currentEvaluation.resultData.size - 1)
 
-          item {
-            ResultHeader(
+        Column(
+          modifier = Modifier
+            .padding(innerPadding)
+            .fillMaxSize()
+        ) {
+          if (savedHistory.hasilKoreksi.size > 1) {
+            EvaluationSelector(
               modifier = Modifier.padding(horizontal = 16.dp),
-              siswaData = currentStudent,
-              scoreProgress = scoreProgress.value,
-              showStudentName = hasil.resultData.size > 1
-            )
-            Spacer(modifier = Modifier.height(24.dp))
-          }
-
-          item {
-            SaveDataButton(
-              onSaveClick = { title ->
-                if (resultState is UiState.Success) {
-                  val dataHasil = (resultState as UiState.Success).data
-                  savedScoreHistoryViewModel.addSavedScoreHistory(title, listOf(dataHasil))
-                  ActionUtils.showToast(context, "Data Berhasil Disimpan")
-                }
-              },
-              modifier = Modifier.padding(horizontal = 16.dp)
-            )
-            Spacer(modifier = Modifier.height(32.dp))
-          }
-
-          stickyHeader {
-            TabRow(
-              selectedTabIndex = selectedTabIndex,
-              containerColor = MaterialTheme.colorScheme.surfaceContainer,
-              contentColor = MaterialTheme.colorScheme.primary,
-              indicator = { tabPositions ->
-                Box(
-                  Modifier
-                    .tabIndicatorOffset(tabPositions[selectedTabIndex])
-                    .height(5.dp)
-                    .padding(horizontal = 16.dp)
-                    .width(tabPositions[selectedTabIndex].width)
-                    .background(
-                      color = MaterialTheme.colorScheme.primary,
-                      shape = RoundedCornerShape(10.dp)
-                    )
-                )
+              evaluations = savedHistory.hasilKoreksi,
+              selectedIndex = currentEvaluationIndex,
+              onEvaluationSelected = { newIndex ->
+                val safeIndex = newIndex.coerceIn(0, savedHistory.hasilKoreksi.size - 1)
+                onEvaluationIndexChange(safeIndex)
+                onStudentIndexChange(0) // Reset student selection
+                onTabIndexChange(0) // Reset tab selection
               }
-            ) {
-              Tab(
-                selected = selectedTabIndex == 0,
-                onClick = { selectedTabIndex = 0 },
-                text = { Text("Detail Evaluasi") }
-              )
-              Tab(
-                selected = selectedTabIndex == 1,
-                onClick = { selectedTabIndex = 1 },
-                text = { Text("Analisis Jawaban") }
-              )
-              if (hasil.resultData.size > 1) {
-                Tab(
-                  selected = selectedTabIndex == 2,
-                  onClick = { selectedTabIndex = 2 },
-                  text = { Text("Rangkuman Kelas") }
-                )
-              }
-            }
+            )
             Spacer(modifier = Modifier.height(16.dp))
           }
 
-          item {
-            when (selectedTabIndex) {
-              0 -> {
-                DetailEvaluasiTab(
-                  modifier = Modifier.padding(horizontal = 16.dp),
-                  hasilKoreksi = currentStudent.hasilKoreksi,
-                  bobotNilai = hasil.listAnswerKey,
-                  tipeEvaluasi = hasil.evaluationType
+          // Rest of the content
+          ResultContent(
+            hasilKoreksi = currentEvaluation,
+            innerPadding = PaddingValues(0.dp),
+            siswaDataList = currentEvaluation.resultData,
+            selectedTabIndex = selectedTabIndex,
+            selectedStudentIndex = currentStudentIndex,
+            scoreProgress = scoreProgress,
+            showSaveButton = false,
+            savedHistoryList = emptyList(),
+            isLoading = false,
+            onTabIndexChange = onTabIndexChange,
+            onStudentIndexChange = onStudentIndexChange,
+            onSaveNew = {},
+            onUpdateExisting = { _, _ -> }
+          )
+        }
+      }
+    }
+    else -> {
+      Box(
+        modifier = Modifier
+          .padding(innerPadding)
+          .fillMaxSize()
+      ) {
+        EmptyResultView(
+          message = "Data tidak ditemukan.",
+          onRetry = onBackClick,
+          modifier = Modifier.align(Alignment.Center)
+        )
+      }
+    }
+  }
+}
+
+@Composable
+private fun EvaluationSelector(
+  modifier: Modifier = Modifier,
+  evaluations: List<HasilKoreksi>,
+  selectedIndex: Int,
+  onEvaluationSelected: (Int) -> Unit
+) {
+  Card(
+    modifier = modifier.fillMaxWidth(),
+    colors = CardDefaults.cardColors(
+      containerColor = MaterialTheme.colorScheme.secondaryContainer
+    )
+  ) {
+    Column(modifier = Modifier.padding(16.dp)) {
+      Text(
+        text = "Pilih Evaluasi:",
+        style = MaterialTheme.typography.titleSmall,
+        color = MaterialTheme.colorScheme.onSecondaryContainer
+      )
+      Spacer(modifier = Modifier.height(8.dp))
+
+      evaluations.forEachIndexed { index, evaluation ->
+        FilterChip(
+          onClick = { onEvaluationSelected(index) },
+          label = {
+            Text("${evaluation.evaluationType.name} (${evaluation.resultData.size} siswa)")
+          },
+          selected = selectedIndex == index,
+          modifier = Modifier.padding(bottom = 4.dp)
+        )
+      }
+    }
+  }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ResultContent(
+  hasilKoreksi: HasilKoreksi,
+  innerPadding: PaddingValues,
+  siswaDataList: List<SiswaData>,
+  selectedTabIndex: Int,
+  selectedStudentIndex: Int,
+  scoreProgress: Animatable<Float, AnimationVector1D>,
+  showSaveButton: Boolean,
+  savedHistoryList: List<SavedScoreHistory>,
+  isLoading: Boolean,
+  onTabIndexChange: (Int) -> Unit,
+  onStudentIndexChange: (Int) -> Unit,
+  onSaveNew: (String) -> Unit,
+  onUpdateExisting: (SavedScoreHistory, String) -> Unit
+) {
+  val currentStudent = siswaDataList[selectedStudentIndex]
+
+  LazyColumn(
+    modifier = Modifier
+      .padding(innerPadding)
+      .fillMaxSize()
+  ) {
+    if (siswaDataList.size > 1) {
+      item {
+        StudentSelector(
+          modifier = Modifier.padding(horizontal = 16.dp),
+          students = siswaDataList,
+          selectedIndex = selectedStudentIndex,
+          onStudentSelected = { newIndex ->
+            val safeIndex = newIndex.coerceIn(0, siswaDataList.size - 1)
+            onStudentIndexChange(safeIndex)
+            onTabIndexChange(0)
+          }
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+      }
+    }
+
+    // Result Header
+    item {
+      ResultHeader(
+        modifier = Modifier.padding(horizontal = 16.dp),
+        siswaData = currentStudent,
+        scoreProgress = scoreProgress.value,
+        showStudentName = siswaDataList.size > 1
+      )
+      Spacer(modifier = Modifier.height(24.dp))
+    }
+
+    // Save Data Button (hanya untuk fresh result)
+    if (showSaveButton) {
+      item {
+        SaveDataButton(
+          onSaveClick = onSaveNew,
+          onUpdateClick = onUpdateExisting,
+          existingData = savedHistoryList,
+          isLoading = isLoading,
+          modifier = Modifier.padding(horizontal = 16.dp)
+        )
+        Spacer(modifier = Modifier.height(24.dp))
+      }
+    }
+
+    // Tab Content
+    item {
+      Column {
+        // Tab Row
+        TabRow(
+          selectedTabIndex = selectedTabIndex,
+          modifier = Modifier.padding(horizontal = 16.dp),
+          containerColor = MaterialTheme.colorScheme.surface,
+          contentColor = MaterialTheme.colorScheme.onSurface
+        ) {
+          listOf("Detail Evaluasi", "Analisis Jawaban", "Ringkasan").forEachIndexed { index, title ->
+            Tab(
+              selected = selectedTabIndex == index,
+              onClick = { onTabIndexChange(index) },
+              text = {
+                Text(
+                  text = title,
+                  style = MaterialTheme.typography.titleSmall
                 )
               }
-              1 -> AnalisisJawabanTab(
-                modifier = Modifier.padding(horizontal = 16.dp),
-                penilaian = currentStudent.hasilKoreksi
-              )
-              2 -> if (hasil.resultData.size > 1) {
-                AllSummaryTab(
-                  modifier = Modifier.padding(horizontal = 16.dp),
-                  students = hasil.resultData
-                )
-              }
-            }
+            )
           }
         }
 
-        if (showTableBottomSheet && hasil.resultData.isNotEmpty()) {
-          BottomSheetTableScore(
-            onDismiss = { showTableBottomSheet = false },
-            dataTable = hasil
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Tab Content
+        when (selectedTabIndex) {
+          0 -> DetailEvaluasiTab(
+            hasilKoreksi = currentStudent.hasilKoreksi,
+            bobotNilai = hasilKoreksi.listAnswerKey,
+            tipeEvaluasi = hasilKoreksi.evaluationType,
+            modifier = Modifier.padding(horizontal = 16.dp)
+          )
+          1 -> AnalisisJawabanTab(
+            penilaian = currentStudent.hasilKoreksi,
+            modifier = Modifier.padding(horizontal = 16.dp)
+          )
+          2 -> AllSummaryTab(
+            students = siswaDataList,
+            modifier = Modifier.padding(horizontal = 16.dp)
           )
         }
-      },
-      onError = { errorMessage ->
-        val (title, description, advice) = essayViewModel.getDetailedErrorMessage(Exception(errorMessage))
-        Box(
-          modifier = Modifier
-            .padding(innerPadding)
-            .fillMaxSize()
-        ) {
-          ErrorView(
-            modifier = Modifier.align(Alignment.Center),
-            errorTitle = title,
-            errorMessage = description,
-            actionableAdvice = advice,
-            onRetry = onBackClick
-          )
-        }
-      }
-    )
-  }
-}
-
-@Composable
-fun AnimatedFloatingActionButton(
-  onClick: () -> Unit,
-  isVisible: Boolean,
-  scale: Float,
-  translationY: Float,
-  contentAlpha: Float,
-  onToggleVisibility: () -> Unit
-) {
-  Box(
-    modifier = Modifier
-      .padding(16.dp)
-      .fillMaxSize(),
-    contentAlignment = Alignment.BottomEnd
-  ) {
-    // Main FAB
-    ExtendedFloatingActionButton(
-      onClick = onClick,
-      modifier = Modifier
-        .graphicsLayer {
-          scaleX = scale
-          scaleY = scale
-          this.translationY = translationY
-          alpha = contentAlpha * scale
-        },
-      icon = {
-        Icon(
-          Icons.Outlined.TableView,
-          contentDescription = null,
-          modifier = Modifier.scale(scale)
-        )
-      },
-      text = {
-        Text(
-          "Rangkuman Nilai",
-          modifier = Modifier.alpha(scale)
-        )
-      },
-      containerColor = MaterialTheme.colorScheme.primary,
-      contentColor = MaterialTheme.colorScheme.onPrimary
-    )
-
-    // Small toggle button yang muncul saat FAB tersembunyi
-    AnimatedVisibility(
-      visible = !isVisible && scale < 0.1f,
-      enter = slideInVertically(
-        initialOffsetY = { it },
-        animationSpec = spring(
-          dampingRatio = Spring.DampingRatioMediumBouncy,
-          stiffness = Spring.StiffnessMedium
-        )
-      ) + fadeIn(animationSpec = tween(300)),
-      exit = slideOutVertically(
-        targetOffsetY = { it },
-        animationSpec = spring(
-          dampingRatio = Spring.DampingRatioNoBouncy,
-          stiffness = Spring.StiffnessMedium
-        )
-      ) + fadeOut(animationSpec = tween(200)),
-      modifier = Modifier
-        .align(Alignment.BottomEnd)
-        .offset(y = (-100).dp) // Position above where FAB would be
-    ) {
-      SmallFloatingActionButton(
-        onClick = onToggleVisibility,
-        containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.9f),
-        contentColor = MaterialTheme.colorScheme.onPrimary,
-        modifier = Modifier
-          .shadow(
-            elevation = 6.dp,
-            shape = CircleShape
-          )
-      ) {
-        Icon(
-          imageVector = Icons.Default.KeyboardArrowUp,
-          contentDescription = "Tampilkan menu",
-          modifier = Modifier.size(20.dp)
-        )
-      }
-    }
-  }
-}
-
-@Composable
-fun SubtleToggleButton(
-  onToggleVisibility: () -> Unit,
-  isVisible: Boolean
-) {
-  AnimatedVisibility(
-    visible = !isVisible,
-    enter = scaleIn(
-      animationSpec = spring(
-        dampingRatio = Spring.DampingRatioMediumBouncy,
-        stiffness = Spring.StiffnessMedium
-      )
-    ) + fadeIn(),
-    exit = scaleOut(
-      animationSpec = spring(
-        dampingRatio = Spring.DampingRatioNoBouncy,
-        stiffness = Spring.StiffnessHigh
-      )
-    ) + fadeOut()
-  ) {
-    Surface(
-      onClick = onToggleVisibility,
-      shape = CircleShape,
-      color = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
-      shadowElevation = 4.dp,
-      modifier = Modifier
-        .size(40.dp)
-        .padding(4.dp)
-    ) {
-      Box(
-        contentAlignment = Alignment.Center
-      ) {
-        Icon(
-          imageVector = Icons.Default.ExpandLess,
-          contentDescription = "Tampilkan menu",
-          tint = MaterialTheme.colorScheme.onPrimary,
-          modifier = Modifier.size(18.dp)
-        )
-      }
-    }
-  }
-}
-
-@Composable
-fun PulsingToggleButton(
-  onToggleVisibility: () -> Unit,
-  isVisible: Boolean
-) {
-  val infiniteTransition = rememberInfiniteTransition()
-
-  val pulse by infiniteTransition.animateFloat(
-    initialValue = 0.8f,
-    targetValue = 1.2f,
-    animationSpec = infiniteRepeatable(
-      animation = tween(1000, easing = FastOutSlowInEasing),
-      repeatMode = RepeatMode.Reverse
-    )
-  )
-
-  AnimatedVisibility(
-    visible = !isVisible,
-    enter = scaleIn(
-      animationSpec = spring(
-        dampingRatio = Spring.DampingRatioMediumBouncy
-      )
-    ) + fadeIn(),
-    exit = scaleOut() + fadeOut()
-  ) {
-    Surface(
-      onClick = onToggleVisibility,
-      shape = CircleShape,
-      color = MaterialTheme.colorScheme.primary,
-      shadowElevation = 6.dp,
-      modifier = Modifier
-        .size(48.dp)
-        .scale(pulse) // Pulse effect
-    ) {
-      Box(
-        contentAlignment = Alignment.Center
-      ) {
-        Icon(
-          imageVector = Icons.Default.KeyboardArrowUp,
-          contentDescription = "Tampilkan rangkuman nilai",
-          tint = MaterialTheme.colorScheme.onPrimary,
-          modifier = Modifier.size(24.dp)
-        )
       }
     }
   }

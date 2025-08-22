@@ -17,7 +17,6 @@ import project.fix.skripsi.presentation.state.EssayData
 import project.fix.skripsi.presentation.utils.common.base.state.EssayState
 import project.fix.skripsi.presentation.utils.common.base.state.UiState
 import project.fix.skripsi.presentation.utils.common.base.state.toUiState
-import project.fix.skripsi.presentation.utils.helper.ErrorMessageMapper
 import project.fix.skripsi.presentation.utils.helper.bitmapToTempFile
 import project.fix.skripsi.presentation.utils.helper.mergeImagesVertically
 import project.fix.skripsi.presentation.utils.helper.uriToBitmap
@@ -105,24 +104,5 @@ class EssayViewModel @Inject constructor(
 
   fun setCorrectionType(type: CorrectionType) {
     _essayData.update { it.copy(correctionType = type) }
-  }
-
-  fun getDetailedErrorMessage(exception: Throwable): Triple<String, String, List<String>> {
-    val message = exception.message ?: "Terjadi kesalahan tidak terduga"
-
-    // Extract status dari error message jika ada
-    val status = when {
-      message.contains("poor_quality") -> "poor_quality"
-      message.contains("no_text_content") -> "no_text_content"
-      message.contains("invalid_content") -> "invalid_content"
-      message.contains("file_too_large") -> "file_too_large"
-      message.contains("invalid_format") -> "invalid_format"
-      else -> null
-    }
-
-    val (title, description) = ErrorMessageMapper.mapErrorToUserFriendlyMessage(status, message)
-    val advice = ErrorMessageMapper.getActionableAdvice(status)
-
-    return Triple(title, description, advice)
   }
 }

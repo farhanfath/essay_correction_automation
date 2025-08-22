@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
@@ -29,11 +30,17 @@ import androidx.compose.material.icons.filled.Save
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -52,156 +59,100 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import project.fix.skripsi.domain.model.SavedScoreHistory
 
+@ExperimentalMaterial3Api
 @Composable
 fun SaveDataButton(
   onSaveClick: (String) -> Unit,
+  onUpdateClick: (SavedScoreHistory, String) -> Unit,
+  existingData: List<SavedScoreHistory> = emptyList(),
   modifier: Modifier = Modifier,
-  isEnabled: Boolean = true
+  isLoading: Boolean = false
 ) {
-  var showDialog by remember { mutableStateOf(false) }
-  var isLoading by remember { mutableStateOf(false) }
-  var showSuccess by remember { mutableStateOf(false) }
+  var showBottomSheet by remember { mutableStateOf(false) }
 
-  // Animasi untuk button state
-  val buttonScale by animateFloatAsState(
-    targetValue = if (isLoading) 0.95f else 1f,
-    animationSpec = spring(
-      dampingRatio = Spring.DampingRatioMediumBouncy,
-      stiffness = Spring.StiffnessHigh
-    )
-  )
-
-  val buttonColor by animateColorAsState(
-    targetValue = when {
-      showSuccess -> Color(0xFF4CAF50)
-      isLoading -> MaterialTheme.colorScheme.secondary
-      else -> MaterialTheme.colorScheme.primary
-    },
-    animationSpec = tween(300)
-  )
-
-  val iconRotation by animateFloatAsState(
-    targetValue = if (isLoading) 360f else 0f,
-    animationSpec = infiniteRepeatable(
-      animation = tween(1000, easing = LinearEasing),
-      repeatMode = RepeatMode.Restart
-    )
-  )
-
-  Box(modifier = modifier) {
+  Card(
+    modifier = modifier.fillMaxWidth(),
+    shape = RoundedCornerShape(16.dp),
+    colors = CardDefaults.cardColors(
+      containerColor = MaterialTheme.colorScheme.primary
+    ),
+    elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+  ) {
     Button(
       onClick = {
-        if (!isLoading && !showSuccess) {
-          showDialog = true
+        if (!isLoading) {
+          showBottomSheet = true
         }
       },
-      enabled = isEnabled && !isLoading,
-      colors = ButtonDefaults.buttonColors(
-        containerColor = buttonColor,
-        disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant
-      ),
       modifier = Modifier
         .fillMaxWidth()
-        .height(56.dp)
-        .graphicsLayer {
-          scaleX = buttonScale
-          scaleY = buttonScale
-        },
-      shape = RoundedCornerShape(16.dp),
-      elevation = ButtonDefaults.buttonElevation(
-        defaultElevation = 8.dp,
-        pressedElevation = 12.dp,
-        disabledElevation = 0.dp
-      )
+        .padding(16.dp),
+      colors = ButtonDefaults.buttonColors(
+        containerColor = Color.Transparent,
+        contentColor = MaterialTheme.colorScheme.onPrimary
+      ),
+      elevation = null,
+      enabled = !isLoading
     ) {
-      Row(
-        horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.fillMaxWidth()
-      ) {
-        when {
-          showSuccess -> {
-            Icon(
-              imageVector = Icons.Default.Check,
-              contentDescription = null,
-              tint = Color.White,
-              modifier = Modifier.size(24.dp)
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-              text = "Tersimpan!",
-              color = Color.White,
-              fontSize = 16.sp,
-              fontWeight = FontWeight.SemiBold
-            )
-          }
-          isLoading -> {
-            Icon(
-              imageVector = Icons.Default.Refresh,
-              contentDescription = null,
-              tint = Color.White,
-              modifier = Modifier
-                .size(24.dp)
-                .graphicsLayer { rotationZ = iconRotation }
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-              text = "Menyimpan...",
-              color = Color.White,
-              fontSize = 16.sp,
-              fontWeight = FontWeight.Medium
-            )
-          }
-          else -> {
-            Icon(
-              imageVector = Icons.Default.Save,
-              contentDescription = null,
-              tint = Color.White,
-              modifier = Modifier.size(24.dp)
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-              text = "Simpan Hasil",
-              color = Color.White,
-              fontSize = 16.sp,
-              fontWeight = FontWeight.SemiBold
-            )
-          }
-        }
+      if (isLoading) {
+        CircularProgressIndicator(
+          modifier = Modifier.size(20.dp),
+          strokeWidth = 2.dp,
+          color = MaterialTheme.colorScheme.onPrimary
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(
+          text = "Menyimpan...",
+          style = MaterialTheme.typography.titleMedium,
+          fontWeight = FontWeight.SemiBold
+        )
+      } else {
+        Icon(
+          imageVector = Icons.Default.Save,
+          contentDescription = null,
+          modifier = Modifier.size(24.dp)
+        )
+        Spacer(modifier = Modifier.width(12.dp))
+        Text(
+          text = "Simpan Hasil Penilaian",
+          style = MaterialTheme.typography.titleMedium,
+          fontWeight = FontWeight.SemiBold
+        )
       }
-    }
-
-    // Ripple effect overlay
-    if (isLoading) {
-      Box(
-        modifier = Modifier
-          .fillMaxSize()
-          .background(
-            Color.White.copy(alpha = 0.1f),
-            RoundedCornerShape(16.dp)
-          )
-      )
     }
   }
 
-  // Dialog untuk input nama
-  if (showDialog) {
-    SaveDataDialog(
-      onDismiss = { showDialog = false },
-      onSave = { name ->
-        showDialog = false
-        isLoading = true
-
-        // Simulate save process
-        onSaveClick(name)
-
-        isLoading = false
-        showSuccess = true
-
-        showSuccess = false
+  // Bottom Sheet untuk pilihan save
+  if (showBottomSheet) {
+    ModalBottomSheet(
+      onDismissRequest = { showBottomSheet = false },
+      containerColor = MaterialTheme.colorScheme.surface,
+      contentColor = MaterialTheme.colorScheme.onSurface,
+      dragHandle = {
+        Surface(
+          modifier = Modifier.padding(vertical = 8.dp),
+          color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
+          shape = RoundedCornerShape(16.dp)
+        ) {
+          Box(
+            modifier = Modifier.size(width = 32.dp, height = 4.dp)
+          )
+        }
       }
-    )
+    ) {
+      SaveDataBottomSheet(
+        existingData = existingData,
+        onDismiss = { showBottomSheet = false },
+        onSaveNew = { title ->
+          onSaveClick(title)
+        },
+        onUpdateExisting = { history, title ->
+          onUpdateClick(history, title)
+        }
+      )
+    }
   }
 }
 

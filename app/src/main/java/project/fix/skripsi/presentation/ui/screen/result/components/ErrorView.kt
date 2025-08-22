@@ -29,11 +29,9 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun ErrorView(
-  modifier: Modifier = Modifier,
-  errorTitle: String,
   errorMessage: String,
-  actionableAdvice: List<String> = emptyList(),
   onRetry: () -> Unit,
+  modifier: Modifier = Modifier
 ) {
   Column(
     modifier = modifier
@@ -52,7 +50,7 @@ fun ErrorView(
     Spacer(modifier = Modifier.height(24.dp))
 
     Text(
-      text = errorTitle,
+      text = "Oops! Terjadi Kesalahan",
       style = MaterialTheme.typography.headlineSmall,
       color = MaterialTheme.colorScheme.error,
       fontWeight = FontWeight.Bold,
@@ -67,40 +65,6 @@ fun ErrorView(
       textAlign = TextAlign.Center,
       color = MaterialTheme.colorScheme.onSurfaceVariant
     )
-
-    // Actionable advice
-    if (actionableAdvice.isNotEmpty()) {
-      Spacer(modifier = Modifier.height(20.dp))
-
-      Card(
-        colors = CardDefaults.cardColors(
-          containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
-        ),
-        shape = RoundedCornerShape(12.dp)
-      ) {
-        Column(
-          modifier = Modifier.padding(16.dp)
-        ) {
-          Text(
-            text = "💡 Tips untuk hasil yang lebih baik:",
-            style = MaterialTheme.typography.titleSmall,
-            fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.primary
-          )
-
-          Spacer(modifier = Modifier.height(8.dp))
-
-          actionableAdvice.forEach { advice ->
-            Text(
-              text = advice,
-              style = MaterialTheme.typography.bodyMedium,
-              color = MaterialTheme.colorScheme.onSurfaceVariant,
-              modifier = Modifier.padding(vertical = 2.dp)
-            )
-          }
-        }
-      }
-    }
 
     Spacer(modifier = Modifier.height(32.dp))
 

@@ -1,13 +1,15 @@
 package project.fix.skripsi.data.remote.n8n.datasource
 
+import com.google.gson.Gson
+import com.google.gson.JsonSyntaxException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import project.fix.skripsi.data.remote.n8n.N8nApiService
+import project.fix.skripsi.data.remote.n8n.model.ApiErrorResponse
 import project.fix.skripsi.data.remote.n8n.model.WebhookResponse
 import project.fix.skripsi.data.utils.createJsonPart
-import project.fix.skripsi.data.utils.extractErrorMessage
-import project.fix.skripsi.data.utils.parseApiResponse
 import project.fix.skripsi.data.utils.toImagePart
+import project.fix.skripsi.domain.exception.CallException
 import project.fix.skripsi.domain.model.AnswerKeyItem
 import java.io.File
 import javax.inject.Inject
@@ -15,6 +17,8 @@ import javax.inject.Inject
 class N8nDataSourceImpl @Inject constructor(
     private val n8nApiService: N8nApiService
 ) : N8nDataSource {
+
+    private val gson = Gson()
 
     override suspend fun evaluateEssay(
         imageFile: File,
@@ -33,34 +37,98 @@ class N8nDataSourceImpl @Inject constructor(
                 val answerKeyPart = createJsonPart(
                     partName = "answer_key",
                     content = answerKey,
+
                 )
 
                 val response = n8nApiService.evaluateEssayFile(imagePart, evaluationCategoryPart, answerKeyPart)
 
-                if (response.isSuccessful) {
-                    val responseBodyString = response.body()?.toString() ?: ""
+                if (response.isSuccessful && response.body() != null) {
+                    val responseBody = response.body()!!
 
-                    val apiResponse = parseApiResponse(responseBodyString)
+                    val responseString = gson.toJson(responseBody)
 
-                    when (apiResponse.statusCode) {
-                        200 -> {
-                            response.body()?.let {
-                                Result.success(it)
-                            } ?: Result.failure(Exception("Response body kosong"))
-                        }
-                        else -> {
-                            val errorMessage = extractErrorMessage(apiResponse)
-                            Result.failure(Exception(errorMessage))
+                    if (isErrorResponse(responseString)) {
+                        val errorResponse = parseErrorResponse(responseString)
+                        Result.failure(
+                            CallException.fromApiError(
+                                statusCode = errorResponse.statusCode ?: 400,
+                                errorMessage = errorResponse.error ?: "Unknown error",
+                                status = errorResponse.status
+                            )
+                        )
+                    } else {
+                        if (isValidSuccessResponse(responseBody)) {
+                            Result.success(responseBody)
+                        } else {
+                            Result.failure(
+                                CallException.fromApiError(
+                                    statusCode = 200,
+                                    errorMessage = "Data hasil evaluasi kosong atau tidak valid",
+                                    status = "empty_data"
+                                )
+                            )
                         }
                     }
                 } else {
-                    Result.failure(Exception("Network error: ${response.code()} ${response.message()}"))
+                    // Handle HTTP error codes
+                    val errorMessage = when (response.code()) {
+                        400 -> "Data yang dikirim tidak valid"
+                        401 -> "Tidak memiliki akses ke layanan"
+                        403 -> "Akses ditolak"
+                        404 -> "Layanan tidak ditemukan"
+                        500 -> "Server mengalami masalah"
+                        else -> "Network error: ${response.code()} ${response.message()}"
+                    }
+                    Result.failure(
+                        CallException.fromApiError(
+                            statusCode = response.code(),
+                            errorMessage = errorMessage,
+                            status = "http_error"
+                        )
+                    )
                 }
             } catch (e: Exception) {
-                Result.failure(e)
+                Result.failure(
+                    CallException.fromApiError(
+                        statusCode = -1,
+                        errorMessage = "Kesalahan tidak terduga: ${e.message}",
+                        status = "unexpected_error"
+                    )
+                )
             }
         }
     }
+
+    private fun isErrorResponse(responseString: String): Boolean {
+        return try {
+            responseString.contains("status_code") && responseString.contains("error")
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    private fun parseErrorResponse(responseString: String): ApiErrorResponse {
+        return try {
+            val jsonArray = gson.fromJson(responseString, Array<ApiErrorResponse>::class.java)
+            jsonArray.firstOrNull() ?: ApiErrorResponse()
+        } catch (e: JsonSyntaxException) {
+            ApiErrorResponse(
+                statusCode = 400,
+                error = "Format response tidak valid",
+                status = "parse_error"
+            )
+        }
+    }
+
+    private fun isValidSuccessResponse(response: WebhookResponse): Boolean {
+        return try {
+            // Cek apakah response memiliki data yang valid
+            response.resultData?.isNotEmpty() == true
+        } catch (e: Exception) {
+            false
+        }
+    }
+
 
 // sample with base64
 

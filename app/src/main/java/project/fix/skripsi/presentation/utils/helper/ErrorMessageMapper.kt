@@ -1,75 +1,121 @@
 package project.fix.skripsi.presentation.utils.helper
 
-object ErrorMessageMapper {
+import project.fix.skripsi.domain.exception.CallException
 
-    fun mapErrorToUserFriendlyMessage(status: String?, defaultError: String): Pair<String, String> {
-        return when (status) {
-            "invalid_file" -> Pair(
-                "File Tidak Valid",
-                "Pastikan Anda memilih file gambar yang valid"
-            )
-            "file_too_large" -> Pair(
-                "File Terlalu Besar",
-                "Kompres gambar atau pilih gambar dengan ukuran lebih kecil"
-            )
-            "invalid_format" -> Pair(
-                "Format Tidak Didukung",
-                "Gunakan format gambar JPG, PNG, atau JPEG"
-            )
-            "poor_quality" -> Pair(
-                "Kualitas Gambar Kurang",
-                "Ambil foto dengan pencahayaan yang baik dan fokus yang jelas"
-            )
-            "invalid_content" -> Pair(
-                "Konten Tidak Sesuai",
-                "Pastikan gambar berisi lembar jawaban essay siswa"
-            )
-            "no_text_content" -> Pair(
-                "Teks Tidak Terdeteksi",
-                "Pastikan gambar mengandung tulisan yang jelas dan terbaca"
-            )
-            "extraction_failed" -> Pair(
-                "Gagal Memproses",
-                "Coba ambil foto ulang dengan kualitas yang lebih baik"
-            )
-            else -> Pair(
-                "Terjadi Kesalahan",
-                defaultError
-            )
+object ErrorMessageHelper {
+
+    fun getDetailedErrorMessage(errorMessage: String?, throwable: Throwable? = null): String {
+        if (throwable is CallException) {
+            return getDetailedErrorFromCallException(throwable)
+        }
+
+        return getDetailedErrorFromMessage(errorMessage)
+    }
+
+    private fun getDetailedErrorFromCallException(exception: CallException): String {
+        return when (exception.status) {
+            "invalid_content" -> {
+                "📷 Gambar Tidak Valid\n\n" +
+                        "${exception.message}\n\n" +
+                        "Tips:\n" +
+                        "• Pastikan foto berisi lembar jawaban essay\n" +
+                        "• Nama siswa harus terlihat jelas\n" +
+                        "• Soal dan jawaban harus terbaca\n" +
+                        "• Ambil foto dengan pencahayaan yang baik"
+            }
+
+            "invalid_file" -> {
+                "📁 File Tidak Valid\n\n" +
+                        "${exception.message}\n\n" +
+                        "Pastikan file yang diupload adalah gambar (JPG, PNG, dsb)"
+            }
+
+            "file_too_large" -> {
+                "📏 File Terlalu Besar\n\n" +
+                        "${exception.message}\n\n" +
+                        "Coba kompres gambar atau gunakan resolusi yang lebih kecil"
+            }
+
+            "server_error" -> {
+                "🔧 Server Bermasalah\n\n" +
+                        "${exception.message}\n\n" +
+                        "Tim teknis sedang memperbaiki masalah ini. Coba lagi dalam beberapa menit."
+            }
+
+            "empty_data" -> {
+                "📄 Data Kosong\n\n" +
+                        "${exception.message}\n\n" +
+                        "Tips:\n" +
+                        "• Pastikan foto jelas dan tidak blur\n" +
+                        "• Nama siswa dan jawaban harus terbaca\n" +
+                        "• Coba ambil foto ulang dengan angle yang lebih baik"
+            }
+
+            "http_error" -> {
+                when (exception.statusCode) {
+                    400 -> "📝 Data Tidak Valid\n\n${exception.message}\n\nPeriksa gambar dan coba lagi"
+                    401, 403 -> "🔒 Akses Ditolak\n\n${exception.message}"
+                    404 -> "🔍 Layanan Tidak Ditemukan\n\n${exception.message}"
+                    500 -> "🔧 Server Error\n\n${exception.message}\n\nCoba lagi nanti"
+                    else -> "❌ Error ${exception.statusCode}\n\n${exception.message}"
+                }
+            }
+
+            "unexpected_error" -> {
+                "❌ Kesalahan Tidak Terduga\n\n" +
+                        "${exception.message}\n\n" +
+                        "Coba restart aplikasi atau hubungi support jika masalah berlanjut"
+            }
+
+            else -> {
+                // Default berdasarkan status code
+                when (exception.statusCode) {
+                    400 -> "📝 Data Tidak Valid\n\n${exception.message}"
+                    500 -> "🔧 Server Bermasalah\n\n${exception.message}"
+                    else -> "❌ Error\n\n${exception.message}"
+                }
+            }
         }
     }
 
-    fun getActionableAdvice(status: String?): List<String> {
-        return when (status) {
-            "poor_quality" -> listOf(
-                "✓ Gunakan pencahayaan yang cukup",
-                "✓ Pastikan kamera fokus",
-                "✓ Hindari bayangan pada kertas",
-                "✓ Ambil foto dari jarak yang tepat"
-            )
-            "no_text_content" -> listOf(
-                "✓ Pastikan ada tulisan tangan yang jelas",
-                "✓ Periksa kontras antara tinta dan kertas",
-                "✓ Ambil foto seluruh halaman jawaban",
-                "✓ Hindari refleksi cahaya"
-            )
-            "invalid_content" -> listOf(
-                "✓ Pastikan ada nama siswa",
-                "✓ Pastikan ada nomor soal (1., 2., 3.)",
-                "✓ Pastikan ada jawaban essay",
-                "✓ Gunakan lembar jawaban yang benar"
-            )
-            "file_too_large" -> listOf(
-                "✓ Kompres gambar terlebih dahulu",
-                "✓ Kurangi resolusi kamera",
-                "✓ Crop gambar jika perlu",
-                "✓ Gunakan aplikasi kompres gambar"
-            )
-            else -> listOf(
-                "✓ Coba ambil foto ulang",
-                "✓ Periksa koneksi internet",
-                "✓ Restart aplikasi jika perlu"
-            )
+    private fun getDetailedErrorFromMessage(errorMessage: String?): String {
+        if (errorMessage == null) return "Terjadi kesalahan yang tidak diketahui"
+
+        return when {
+            errorMessage.contains("bukan lembar jawaban") -> {
+                "📷 Gambar Tidak Valid\n\n" +
+                        "$errorMessage\n\n" +
+                        "Pastikan foto berisi lembar jawaban essay yang jelas"
+            }
+            errorMessage.contains("kosong") -> {
+                "📄 Data Kosong\n\n$errorMessage"
+            }
+            errorMessage.contains("Network error") -> {
+                "🌐 Masalah Jaringan\n\n$errorMessage"
+            }
+            else -> "❌ Kesalahan\n\n$errorMessage"
         }
+    }
+
+    fun getShortErrorMessage(errorMessage: String?, throwable: Throwable? = null): String {
+        if (throwable is CallException) {
+            return when (throwable.status) {
+                "invalid_content" -> "Gambar tidak valid"
+                "invalid_file" -> "File tidak valid"
+                "file_too_large" -> "File terlalu besar"
+                "server_error" -> "Server bermasalah"
+                "empty_data" -> "Data kosong"
+                else -> "Error ${throwable.statusCode}"
+            }
+        }
+
+        return errorMessage?.let {
+            when {
+                it.contains("bukan lembar jawaban") -> "Gambar tidak valid"
+                it.contains("kosong") -> "Data kosong"
+                it.contains("Network") -> "Masalah jaringan"
+                else -> "Kesalahan"
+            }
+        } ?: "Kesalahan tidak diketahui"
     }
 }
