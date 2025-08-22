@@ -35,14 +35,11 @@ class SavedScoreHistoryViewModel @Inject constructor(
   private fun getAllSavedScoreHistory() {
     viewModelScope.launch {
       try {
-        _isLoading.value = true
         val savedScoreData = savedScoreHistoryUseCase.getAllSavedScoreHistory()
         _savedScoreHistoryList.value = savedScoreData
         _errorMessage.value = null
       } catch (e: Exception) {
         _errorMessage.value = "Gagal memuat data: ${e.message}"
-      } finally {
-        _isLoading.value = false
       }
     }
   }

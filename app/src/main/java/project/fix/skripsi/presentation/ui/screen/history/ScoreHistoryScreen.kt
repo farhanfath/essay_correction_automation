@@ -31,7 +31,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import project.fix.skripsi.domain.model.SavedScoreHistory
 import project.fix.skripsi.presentation.ui.components.CustomTopHeader
 import project.fix.skripsi.presentation.ui.screen.history.components.EmptyStateView
 import project.fix.skripsi.presentation.ui.screen.history.components.ScoreHistoryCard

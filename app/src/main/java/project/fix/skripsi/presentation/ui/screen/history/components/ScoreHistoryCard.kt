@@ -94,10 +94,10 @@ fun ScoreHistoryCard(
           )
 
           // Evaluation Type Badge
-          if (history.hasilKoreksi.isNotEmpty()) {
-            Spacer(modifier = Modifier.height(8.dp))
-            EvaluationTypeBadge(history.hasilKoreksi.first().evaluationType)
-          }
+//          if (history.hasilKoreksi.isNotEmpty()) {
+//            Spacer(modifier = Modifier.height(8.dp))
+//            EvaluationTypeBadge(history.hasilKoreksi.first().evaluationType)
+//          }
         }
 
         Row {
@@ -126,7 +126,7 @@ fun ScoreHistoryCard(
       // Stats Overview
       if (history.hasilKoreksi.isNotEmpty()) {
         Spacer(modifier = Modifier.height(16.dp))
-        ScoreStatsRow(history.hasilKoreksi.first())
+        ScoreStatsRow(history)
       }
 
       // Expanded Content
@@ -141,7 +141,7 @@ fun ScoreHistoryCard(
           Spacer(modifier = Modifier.height(16.dp))
 
           if (history.hasilKoreksi.isNotEmpty()) {
-            StudentResultsList(history.hasilKoreksi.first().resultData)
+            StudentResultsList(history)
           }
         }
       }
@@ -172,36 +172,6 @@ fun ScoreHistoryCard(
           Text("Batal")
         }
       }
-    )
-  }
-}
-
-@Composable
-fun EvaluationTypeBadge(type: CorrectionType) {
-  val (backgroundColor, textColor, text) = when (type) {
-    CorrectionType.AI -> Triple(
-      MaterialTheme.colorScheme.primary,
-      MaterialTheme.colorScheme.onPrimary,
-      "Otomatis AI Agent"
-    )
-    CorrectionType.ANSWER_KEY -> Triple(
-      MaterialTheme.colorScheme.secondary,
-      MaterialTheme.colorScheme.onSecondary,
-      "Kunci Jawaban"
-    )
-  }
-
-  Surface(
-    color = backgroundColor,
-    shape = RoundedCornerShape(12.dp),
-    modifier = Modifier.wrapContentSize()
-  ) {
-    Text(
-      text = text,
-      style = MaterialTheme.typography.labelSmall,
-      color = textColor,
-      fontWeight = FontWeight.Medium,
-      modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
     )
   }
 }

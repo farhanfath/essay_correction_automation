@@ -29,18 +29,14 @@ class N8nDataSourceImpl @Inject constructor(
             try {
                 val imagePart = imageFile.toImagePart("image")
 
-                val evaluationCategoryPart = createJsonPart(
-                    partName = "evaluation_category",
-                    content = mapOf("source" to "android", "evaluationCategory" to evaluationCategory)
+                val gson = Gson()
+                val answerKeyJson = gson.toJson(answerKey)
+
+                val response = n8nApiService.evaluateEssayWithQuery(
+                    image = imagePart,
+                    evaluationCategory = evaluationCategory,
+                    answerKeyJson = answerKeyJson
                 )
-
-                val answerKeyPart = createJsonPart(
-                    partName = "answer_key",
-                    content = answerKey,
-
-                )
-
-                val response = n8nApiService.evaluateEssayFile(imagePart, evaluationCategoryPart, answerKeyPart)
 
                 if (response.isSuccessful && response.body() != null) {
                     val responseBody = response.body()!!

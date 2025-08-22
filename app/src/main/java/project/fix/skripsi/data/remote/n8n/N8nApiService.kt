@@ -9,6 +9,7 @@ import retrofit2.http.Body
 import retrofit2.http.Multipart
 import retrofit2.http.POST
 import retrofit2.http.Part
+import retrofit2.http.Query
 
 interface N8nApiService {
     @POST(BuildConfig.ENDPOINT)
@@ -22,5 +23,14 @@ interface N8nApiService {
         @Part image: MultipartBody.Part,
         @Part evaluationCategory: MultipartBody.Part,
         @Part answerKey: MultipartBody.Part
+    ): Response<WebhookResponse>
+
+    @Multipart
+    @POST(BuildConfig.ENDPOINT)
+    suspend fun evaluateEssayWithQuery(
+        @Part image: MultipartBody.Part,
+        @Query("evaluation_category") evaluationCategory: String,
+        @Query("answer_key") answerKeyJson: String,
+        @Query("source") source: String = "android"
     ): Response<WebhookResponse>
 }

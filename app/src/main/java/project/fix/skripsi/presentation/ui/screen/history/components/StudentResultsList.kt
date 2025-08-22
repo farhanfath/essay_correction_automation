@@ -14,11 +14,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import project.fix.skripsi.domain.model.SavedScoreHistory
 import project.fix.skripsi.domain.model.SiswaData
 import project.fix.skripsi.presentation.ui.screen.history.getScoreColor
 
 @Composable
-fun StudentResultsList(students: List<SiswaData>) {
+fun StudentResultsList(savedScoreHistory: SavedScoreHistory) {
+  val students = savedScoreHistory.hasilKoreksi.flatMap { it.resultData }
+
   Column {
     Text(
       text = "Hasil Siswa",

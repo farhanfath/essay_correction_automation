@@ -23,13 +23,18 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import project.fix.skripsi.domain.model.HasilKoreksi
+import project.fix.skripsi.domain.model.SavedScoreHistory
 
 @Composable
-fun ScoreStatsRow(hasilKoreksi: HasilKoreksi) {
-  val students = hasilKoreksi.resultData
-  val avgScore = students.map { it.skorAkhir }.average()
-  val maxScore = students.maxOfOrNull { it.skorAkhir } ?: 0.0
-  val minScore = students.minOfOrNull { it.skorAkhir } ?: 0.0
+fun ScoreStatsRow(savedScoreHistory: SavedScoreHistory) {
+  val allStudents = savedScoreHistory.hasilKoreksi.flatMap { it.resultData }
+
+  val avgScore = if (allStudents.isNotEmpty()) {
+    allStudents.map { it.skorAkhir }.average()
+  } else 0.0
+
+  val maxScore = allStudents.maxOfOrNull { it.skorAkhir } ?: 0.0
+  val minScore = allStudents.minOfOrNull { it.skorAkhir } ?: 0.0
 
   Row(
     modifier = Modifier.fillMaxWidth(),
@@ -37,7 +42,7 @@ fun ScoreStatsRow(hasilKoreksi: HasilKoreksi) {
   ) {
     StatItem(
       label = "Siswa",
-      value = students.size.toString(),
+      value = allStudents.size.toString(),
       icon = Icons.Default.People,
       color = MaterialTheme.colorScheme.primary
     )

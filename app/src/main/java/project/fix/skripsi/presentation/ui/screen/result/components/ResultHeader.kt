@@ -46,7 +46,9 @@ fun ResultHeader(
     )
   ) {
     Column(
-      modifier = Modifier.padding(24.dp),
+      modifier = Modifier
+        .fillMaxWidth()
+        .padding(24.dp),
       horizontalAlignment = Alignment.CenterHorizontally
     ) {
       if (showStudentName) {
@@ -95,27 +97,11 @@ fun ResultHeader(
 
       Spacer(modifier = Modifier.height(16.dp))
 
-      // Statistics
-      Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceEvenly
-      ) {
-        StatItem(
-          label = "Soal Dijawab",
-          value = "${siswaData.hasilKoreksi.size}",
-          icon = Icons.AutoMirrored.Default.Assignment
-        )
-        StatItem(
-          label = "Rata-rata",
-          value = "${(siswaData.hasilKoreksi.map { it.skor }.average()).roundToInt()}",
-          icon = Icons.AutoMirrored.Default.TrendingUp
-        )
-        StatItem(
-          label = "Tertinggi",
-          value = "${siswaData.hasilKoreksi.maxByOrNull { it.skor }?.skor ?: 0}",
-          icon = Icons.Default.Star
-        )
-      }
+      StatItem(
+        label = "Soal Dijawab",
+        value = "${siswaData.hasilKoreksi.size}",
+        icon = Icons.AutoMirrored.Default.Assignment
+      )
     }
   }
 }
