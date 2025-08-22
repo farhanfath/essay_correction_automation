@@ -17,6 +17,7 @@ import project.fix.skripsi.presentation.ui.screen.result.components.LoadingEvalu
 import project.fix.skripsi.presentation.ui.screen.result.components.ResultContent
 import project.fix.skripsi.presentation.utils.common.base.state.StateHandler
 import project.fix.skripsi.presentation.utils.common.base.state.UiState
+import project.fix.skripsi.presentation.utils.helper.ErrorMessageHelper
 
 @Composable
 fun HandleFreshResultState(
@@ -78,14 +79,14 @@ fun HandleFreshResultState(
                 onUpdateExisting = onUpdateExisting
             )
         },
-        onError = { error ->
+        onError = { errorMessage, throwable ->
             Box(
                 modifier = Modifier
                     .padding(innerPadding)
                     .fillMaxSize()
             ) {
                 ErrorView(
-                    errorMessage = error,
+                    errorMessage = ErrorMessageHelper.getDetailedErrorMessage(errorMessage, throwable),
                     onRetry = onBackClick,
                     modifier = Modifier.align(Alignment.Center)
                 )

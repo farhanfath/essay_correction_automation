@@ -14,6 +14,11 @@ object ErrorMessageHelper {
 
     private fun getDetailedErrorFromCallException(exception: CallException): String {
         return when (exception.status) {
+            "file_too_large" -> {
+                "📏 File Terlalu Besar\n\n" +
+                        "${exception.message}\n\n" +
+                        "Coba kompres gambar atau gunakan resolusi yang lebih kecil"
+            }
             "invalid_content" -> {
                 "📷 Gambar Tidak Valid\n\n" +
                         "${exception.message}\n\n" +
@@ -28,12 +33,6 @@ object ErrorMessageHelper {
                 "📁 File Tidak Valid\n\n" +
                         "${exception.message}\n\n" +
                         "Pastikan file yang diupload adalah gambar (JPG, PNG, dsb)"
-            }
-
-            "file_too_large" -> {
-                "📏 File Terlalu Besar\n\n" +
-                        "${exception.message}\n\n" +
-                        "Coba kompres gambar atau gunakan resolusi yang lebih kecil"
             }
 
             "server_error" -> {
@@ -95,27 +94,5 @@ object ErrorMessageHelper {
             }
             else -> "❌ Kesalahan\n\n$errorMessage"
         }
-    }
-
-    fun getShortErrorMessage(errorMessage: String?, throwable: Throwable? = null): String {
-        if (throwable is CallException) {
-            return when (throwable.status) {
-                "invalid_content" -> "Gambar tidak valid"
-                "invalid_file" -> "File tidak valid"
-                "file_too_large" -> "File terlalu besar"
-                "server_error" -> "Server bermasalah"
-                "empty_data" -> "Data kosong"
-                else -> "Error ${throwable.statusCode}"
-            }
-        }
-
-        return errorMessage?.let {
-            when {
-                it.contains("bukan lembar jawaban") -> "Gambar tidak valid"
-                it.contains("kosong") -> "Data kosong"
-                it.contains("Network") -> "Masalah jaringan"
-                else -> "Kesalahan"
-            }
-        } ?: "Kesalahan tidak diketahui"
     }
 }

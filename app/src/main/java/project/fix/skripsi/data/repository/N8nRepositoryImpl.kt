@@ -1,12 +1,12 @@
 package project.fix.skripsi.data.repository
 
 import project.fix.skripsi.data.remote.n8n.datasource.N8nDataSource
-import project.fix.skripsi.data.remote.n8n.model.WebhookResponse
 import project.fix.skripsi.domain.exception.CallException
 import project.fix.skripsi.domain.model.AnswerKeyItem
 import project.fix.skripsi.domain.model.HasilKoreksi
 import project.fix.skripsi.domain.repository.N8nRepository
 import project.fix.skripsi.domain.utils.ResultResponse
+import project.fix.skripsi.presentation.utils.helper.ErrorMessageHelper
 import java.io.File
 import javax.inject.Inject
 
@@ -20,35 +20,31 @@ class N8nRepositoryImpl @Inject constructor(
     ): ResultResponse<HasilKoreksi> {
         return try {
             val result = n8nDataSource.evaluateEssay(imageFile, evaluationCategory, answerKey)
-            result.fold(
-                onSuccess = {
-                    val response = WebhookResponse.transform(it)
-                    if (response.resultData.isEmpty()) {
-                        ResultResponse.Error(
-                            message = "Tidak ada data siswa yang berhasil diproses",
-                            throwable = CallException.fromApiError(
-                                statusCode = 200,
-                                errorMessage = "Hasil evaluasi kosong. Pastikan gambar berisi jawaban essay yang jelas.",
-                                status = "empty_data"
-                            )
-                        )
+
+            when {
+                result.isSuccess -> {
+                    val hasilKoreksi = result.getOrNull()
+                    if (hasilKoreksi != null) {
+                        ResultResponse.Success(hasilKoreksi)
                     } else {
-                        ResultResponse.Success(response)
+                        ResultResponse.Error("Data hasil evaluasi tidak valid")
                     }
-                },
-                onFailure = { throwable ->
-                    val errorMessage = when (throwable) {
-                        is CallException -> throwable.message
-                        else -> throwable.message ?: "Unexpected error"
-                    }
-                    ResultResponse.Error(errorMessage, throwable)
                 }
-            )
+                result.isFailure -> {
+                    val exception = result.exceptionOrNull()
+                    val errorMessage = if (exception is CallException) {
+                        ErrorMessageHelper.getDetailedErrorMessage(exception.message, exception)
+                    } else {
+                        exception?.message ?: "Terjadi kesalahan tidak diketahui"
+                    }
+                    ResultResponse.Error(errorMessage)
+                }
+                else -> {
+                    ResultResponse.Error("Terjadi kesalahan tidak diketahui")
+                }
+            }
         } catch (e: Exception) {
-            ResultResponse.Error(
-                message = e.message ?: "Unexpected error",
-                throwable = e
-            )
+            ResultResponse.Error("Kesalahan: ${e.message}")
         }
     }
 }

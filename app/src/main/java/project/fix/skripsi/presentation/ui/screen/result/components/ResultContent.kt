@@ -71,8 +71,7 @@ fun ResultContent(
             ResultHeader(
                 modifier = Modifier.padding(horizontal = 16.dp),
                 siswaData = currentStudent,
-                scoreProgress = scoreProgress.value,
-                showStudentName = siswaDataList.size > 1
+                scoreProgress = scoreProgress.value
             )
             Spacer(modifier = Modifier.height(24.dp))
         }

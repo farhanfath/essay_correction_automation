@@ -28,6 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import project.fix.skripsi.domain.model.SiswaData
 import kotlin.math.roundToInt
@@ -36,8 +37,7 @@ import kotlin.math.roundToInt
 fun ResultHeader(
   modifier: Modifier = Modifier,
   siswaData: SiswaData,
-  scoreProgress: Float,
-  showStudentName: Boolean = true
+  scoreProgress: Float
 ) {
   Card(
     modifier = modifier.fillMaxWidth(),
@@ -51,15 +51,15 @@ fun ResultHeader(
         .padding(24.dp),
       horizontalAlignment = Alignment.CenterHorizontally
     ) {
-      if (showStudentName) {
-        Text(
-          text = siswaData.nama,
-          style = MaterialTheme.typography.headlineSmall,
+      Text(
+        text = siswaData.nama,
+        style = MaterialTheme.typography.headlineSmall.copy(
           color = MaterialTheme.colorScheme.onPrimaryContainer,
-          fontWeight = FontWeight.Bold
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-      }
+          textAlign = TextAlign.Center
+        ),
+        fontWeight = FontWeight.Bold
+      )
+      Spacer(modifier = Modifier.height(8.dp))
 
       // Circular Progress Indicator untuk skor
       Box(

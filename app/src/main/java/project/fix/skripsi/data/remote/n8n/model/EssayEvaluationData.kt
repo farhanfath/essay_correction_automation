@@ -7,7 +7,7 @@ import project.fix.skripsi.domain.model.HasilKoreksi
 import project.fix.skripsi.domain.model.PerSoal
 import project.fix.skripsi.domain.model.SiswaData
 
-data class WebhookResponse(
+data class EssayEvaluationData(
 	@SerializedName("tipe_evaluasi")
 	val evaluationType: String? = null,
 
@@ -18,7 +18,7 @@ data class WebhookResponse(
 	val listAnswerKey: List<AnswerKeyItemResponse>? = null
 ) {
 	companion object {
-		fun transform(response: WebhookResponse): HasilKoreksi {
+		fun transform(response: EssayEvaluationData): HasilKoreksi {
 			return HasilKoreksi(
 				evaluationType = if (response.evaluationType == "AI") {
 					CorrectionType.AI
@@ -78,7 +78,7 @@ data class PerSoalResponse(
 	val alasan: String? = null,
 
 	@field:SerializedName("skor")
-val skor: Int? = null
+	val skor: Int? = null
 ) {
 	companion object {
 		fun transform(response: PerSoalResponse) : PerSoal {

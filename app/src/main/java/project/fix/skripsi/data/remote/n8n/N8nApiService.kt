@@ -2,8 +2,9 @@ package project.fix.skripsi.data.remote.n8n
 
 import okhttp3.MultipartBody
 import project.fix.skripsi.BuildConfig
+import project.fix.skripsi.data.base.model.BaseApiResponse
+import project.fix.skripsi.data.remote.n8n.model.EssayEvaluationData
 import project.fix.skripsi.data.remote.n8n.model.EssayEvaluationRequest
-import project.fix.skripsi.data.remote.n8n.model.WebhookResponse
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.Multipart
@@ -15,7 +16,7 @@ interface N8nApiService {
     @POST(BuildConfig.ENDPOINT)
     suspend fun evaluateEssayBase64(
         @Body request: EssayEvaluationRequest
-    ): Response<WebhookResponse>
+    ): Response<BaseApiResponse<EssayEvaluationData>>
 
     @Multipart
     @POST(BuildConfig.ENDPOINT)
@@ -23,7 +24,7 @@ interface N8nApiService {
         @Part image: MultipartBody.Part,
         @Part evaluationCategory: MultipartBody.Part,
         @Part answerKey: MultipartBody.Part
-    ): Response<WebhookResponse>
+    ): Response<BaseApiResponse<EssayEvaluationData>>
 
     @Multipart
     @POST(BuildConfig.ENDPOINT)
@@ -32,5 +33,5 @@ interface N8nApiService {
         @Query("evaluation_category") evaluationCategory: String,
         @Query("answer_key") answerKeyJson: String,
         @Query("source") source: String = "android"
-    ): Response<WebhookResponse>
+    ): Response<BaseApiResponse<EssayEvaluationData>>
 }
