@@ -19,6 +19,7 @@ import project.fix.skripsi.presentation.utils.common.base.state.UiState
 import project.fix.skripsi.presentation.utils.common.base.state.toUiState
 import project.fix.skripsi.presentation.utils.helper.bitmapToTempFile
 import project.fix.skripsi.presentation.utils.helper.mergeImagesVertically
+import project.fix.skripsi.presentation.utils.helper.optimizeForOCR
 import project.fix.skripsi.presentation.utils.helper.uriToBitmap
 import javax.inject.Inject
 
@@ -45,8 +46,12 @@ class EssayViewModel @Inject constructor(
       }
 
       val bitmaps = imagesList.map { uri -> uriToBitmap(context, uri) }
+
       val mergedBitmap = mergeImagesVertically(bitmaps)
-      val tempFile = bitmapToTempFile(context, mergedBitmap)
+
+      val optimizedBitmap = optimizeForOCR(mergedBitmap)
+
+      val tempFile = bitmapToTempFile(context, optimizedBitmap)
 
       val answerKeysList = essayData.value.answerKeyItems
       val correctionType = essayData.value.correctionType.name
